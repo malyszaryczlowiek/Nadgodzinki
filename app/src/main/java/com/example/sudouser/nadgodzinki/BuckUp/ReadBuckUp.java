@@ -105,7 +105,7 @@ public class ReadBuckUp implements ActivityCompat.OnRequestPermissionsResultCall
 
 
                         // następnie zrobić parser do wczytywania danych z xml'a
-                        //
+                        // dsfgsa
                     }
                 }
                 else
