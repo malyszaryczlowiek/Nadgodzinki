@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/buckup_options">
+
+        <EditTextPreference
+            android:dialogTitle="@string/buckup_email_address"
+            android:dialogMessage="@string/enter_your_buckup_email"
+            android:title="@string/settings_buckup_email"
+            android:inputType="textEmailAddress"
+            android:key="buckup_email"
+            app:useSimpleSummaryProvider="true"
+            />
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:editable="true"
+            android:key="buckup_enabled"
+            android:title="@string/auto_buckup"
+            android:summary="@string/settings_buckup_switch_summary"
+            />
+
+        <ListPreference
+            android:dialogTitle="Choose buckup period"
+            android:dependency="buckup_enabled"
+            android:key="buckupList"
+            android:title="@string/buckup_frequency"
+            android:entries="@array/buckup_list"
+            android:entryValues="@array/buckup_list_values"
+            android:defaultValue="every_week"
+            app:useSimpleSummaryProvider="true"
+            />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

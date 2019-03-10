@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="buckup_list" >
+        <item name="every_week">Co tydzień</item>
+        <item name="every_month">Co miesiąc</item>
+        <item name="every_quarter">Co kwartał</item>
+    </string-array>
+
+    <string-array name="buckup_list_values" >
+        <item name="every_week">week</item>
+        <item name="every_month">month</item>
+        <item name="every_quarter">quarter</item>
+    </string-array>
+</resources>
