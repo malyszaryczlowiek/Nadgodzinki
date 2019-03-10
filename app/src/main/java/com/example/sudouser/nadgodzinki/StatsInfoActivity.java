@@ -155,7 +155,6 @@ public class StatsInfoActivity extends AppCompatActivity
         sendWithoutAttachment();
     }
 
-
     private void sendWithoutAttachment()
     {
         // tutaj lepiej dać applicationContext niż this, który odnośi się do aktywności CHYBA, choć this tez działa poprawnie.

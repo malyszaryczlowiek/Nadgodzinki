@@ -66,7 +66,6 @@ public class BuckUpFile
                 rootelement.appendChild(item);
             }
 
-            LocalDate date = LocalDate.now();
             plik = new File(context.getCacheDir(), context.getText(R.string.app_name) + "_Buckup.xml");
             plik.deleteOnExit();
 

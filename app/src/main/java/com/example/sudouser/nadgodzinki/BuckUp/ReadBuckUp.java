@@ -20,31 +20,29 @@ import androidx.core.content.ContextCompat;
 
 /**
  * klasa będzie odpowiedzialna za wczytanie pliku z buckupem i wyczyszczenie
- * bazy danych () ewentualnie porównanie bazy danych  i dostawienie brakujących rekordów
+ * bazy danych () ewentualnie porównanie bazy danych i dostawienie brakujących rekordów
  */
 public class ReadBuckUp implements ActivityCompat.OnRequestPermissionsResultCallback
 {
     private Context mContext;
     private static final int MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 1;
+    private int wybranaLiczba;
 
     public ReadBuckUp(Context context)
     {
         mContext = context;
-
         // sprawdź czy jest umieszczona karta pamięci
         if (isExternalStorageWritable())
         {
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE)
                     != PackageManager.PERMISSION_GRANTED) {
                 // Permission is not granted
-                int duration = Toast.LENGTH_SHORT;
-                Toast toast = Toast.makeText(context, "permision is not granted", duration);
-                toast.show();
+                Toast.makeText(context, "permision is not granted", Toast.LENGTH_SHORT).show();
 
                 // jako że granted (dostęp) nie jest zaspokojone, trzeba wyświetlić urzytkownikowi
                 // wyjaśnienie dlaczego należy zapytanie zaakceptować.
 
-                // todo w razie problemów należy tutaj zmienić rzutownaie w pierwszym argumencie na Activity
+                // w razie problemów należy tutaj zmienić rzutownaie w pierwszym argumencie na Activity
                 if (ActivityCompat.shouldShowRequestPermissionRationale((AppCompatActivity) context, Manifest.permission.READ_EXTERNAL_STORAGE))
                 {
                     // Show an explanation to the user *asynchronously* -- don't block
@@ -59,24 +57,23 @@ public class ReadBuckUp implements ActivityCompat.OnRequestPermissionsResultCall
             }
             else
             {
-                Toast.makeText(context, "permision is granted", Toast.LENGTH_SHORT).show();
+                // Toast.makeText(context, "permision is granted", Toast.LENGTH_SHORT).show();
 
 
                 //TODO poniższy kod należy wywlołać w oddzielnym wątku bo za dużo tutaj pieprzenia się,
                 // sprawdź czy w folderze Downloads istnieje plik buckupowy.
-                String name = context.getText(R.string.app_name) + "_Buckup.xml";
+                String name = ".xml";
                 File folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-
-                File[] lista = folder.listFiles();
+                File[] lista = folder.listFiles(); // wczytuje listę plików i folderów z danej lokalizacji
                 if (lista != null)
                 {
                     File[] nowaLista = Arrays.stream(lista)
                             //.filter(file -> file.isFile()) // odfiltrowuje tutaj directory
-                            .filter(File::isFile)
-                            .filter(file ->                // odfiltrowuje tutaj nazwy plików nie zawierające poszukiwanej nazwy.
+                            .filter(File::isFile)            // można też odfiltrować referencją
+                            .filter(file ->                  // odfiltrowuje tutaj nazwy plików nie zawierające poszukiwanej nazwy.
                             {
                                 String nazwa = file.getName();
-                                return nazwa.matches(".*" + name);
+                                return nazwa.matches(".*" + name); // regexem jest dowolny plik kończący się rozszerzeniem .xml
                             })
                             .toArray(File[]::new);
 
@@ -96,16 +93,36 @@ public class ReadBuckUp implements ActivityCompat.OnRequestPermissionsResultCall
                         builder.show();
                     }
                     else // jeśli natomiast lista nie jest pusta to wyświetl dialog z listą do odtickowania.
+                    // // Albo uruchom intent z dostępem do plików w folderze DOwnloads ale taki intent który zwróci Uri do
+                    // pliku ,który został wybrany
                     {
-                        Toast.makeText(context, "wyświtlam dialog z listą plików ", Toast.LENGTH_SHORT).show();
-                        //TODO w pierwszej kolejnośco po powrocie z wyjazdu zrobić ten dialog z listą plików gdzie wybiera się jeden który ma byc wczytany
-                        // jako plik buckupowy
-                        // wdrugiej kolejności zrobić api do usunięcia konkretnego wpisu tak aby
-                        // wybierać w dialogu datę, którą chcemu skasować i zrobić powiadomienia jeśli nie ma w bazie wpisu z takeigo dnia?
+                        String[] listaPlikow = Arrays.stream(nowaLista).map(File::getName).toArray(String[]::new);
 
+                        // dialog z wyborem pliku, który chemy wczytać
+                        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                        builder.setTitle(R.string.selectBuckupFile)
+                                .setItems(listaPlikow, new DialogInterface.OnClickListener()
+                                {
+                                    // argument which jest indeksem pozycji którą wybieram
+                                    public void onClick(DialogInterface dialog, int which)
+                                    {
+                                        // The 'which' argument contains the index position
+                                        // of the selected item
 
-                        // następnie zrobić parser do wczytywania danych z xml'a
-                        // dsfgsa
+                                        wybranaLiczba = which;
+                                        File chosenFile = nowaLista[wybranaLiczba];
+                                        // wczytuję ścieżkę do pliku zakładając, że kolejność ścieżek absolutnych w nowaLista jest
+                                        // taka sama jak w listaPlikow, przez to wybierając plik wybieram ścieżkę absolutną, którą
+                                        // następnie użyje do wczytania i parsingu pliku.
+
+                                        readFile(chosenFile); // wczytuję wszystko razem z parsingiem choć może lepiej jest to
+                                        // wszystko zrobić w statyczniej klasie wewnętrzej i współbieznie
+                                    }
+                                });
+                        builder.show();
+
+                        //TODO w drugiej kolejności zrobić api do usunięcia konkretnego wpisu tak aby
+                        //TODO wybierać w dialogu datę, którą chcemu skasować i zrobić powiadomienia jeśli nie ma w bazie wpisu z takeigo dnia?
                     }
                 }
                 else
@@ -161,15 +178,30 @@ public class ReadBuckUp implements ActivityCompat.OnRequestPermissionsResultCall
         }
     }
 
-    /**
-     * funkcja wczytuje folder, następnie z folderu wczytuje nazwy wszystkich plików (nie folderów - zrobić sprawdzanie)
-     * następnie regexem wyłuskuję te które zawierają Nadgodzinki_Buckup.xml i tak przygotowaną listę wyświetlam na dialogue
-     * gdzie urzytkowniek odtickowuje który plik chce wczytać
-     * @param folder File, który zawiera folder do przeszukania.
-     * @return zwraca File który został wybrany przez urzytkownika.
-     */
-    private File selectFile(File folder)
+    private void readFile(File file)
     {
-        return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "nazwa_pliku");
+        Toast.makeText(mContext, "wczytany plik: " + file.getName(), Toast.LENGTH_SHORT).show();
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

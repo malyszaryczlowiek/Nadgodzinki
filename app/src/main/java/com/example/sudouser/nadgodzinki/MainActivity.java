@@ -24,12 +24,6 @@ public class MainActivity extends AppCompatActivity
 {
     private ItemViewModel mItemViewModel;
 
-
-
-
-// TODO sprawdzić jak można zapisywać i wczytywać plik z external localization zwłaszcza z karty pamięci
-// TODO a następnie napisać Api do wczytywania pliku tam się znajdującego.
-
     /**
      * Jest to pierwsza z metod callback - jest ona wykonywana tylko raz w momencie gdy tworzona jest
      * activity.
@@ -46,12 +40,12 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
 
-
         mItemViewModel = ViewModelProviders.of(this).get(ItemViewModel.class);
         //sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         // to nie jest dobre rozwiązanie ponieważ przypisanie jest wykonywane w głównym watku
         // należy to przenieść do jakiegoś pobocznego wątku.
 
+        Toast.makeText(getApplicationContext(), getApplicationContext().getDatabasePath("Baza_Danych").getPath(), Toast.LENGTH_LONG).show();
 
         final CalendarView calendar = findViewById(R.id.mainCalendar);
         mItemViewModel.setLocalDate(LocalDate.ofEpochDay( (calendar.getDate()/(24*3600*1000))));
@@ -64,7 +58,27 @@ public class MainActivity extends AppCompatActivity
             {
                 mItemViewModel.setLocalDate(LocalDate.of(year, month+1, dayOfMonth));
             }
+            /*
+        // powyższego lisenra można zapisać w postaci wyrażenia lambda
+        calendar.setOnDateChangeListener( (@NonNull CalendarView view, int year, int month, int dayOfMonth) ->
+                mItemViewModel.setLocalDate(LocalDate.of(year, month+1, dayOfMonth)));
+
+         */
         });
+        /*
+        AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
+        builder.setMessage(getApplicationContext().getDatabasePath("Baza_Danych").getPath())
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener()
+                        {
+                            public void onClick(DialogInterface dialog, int id)
+                            {
+                                // nic nie zmieniaj, użytkownik ma tylko przyjąć do wiadomości, że
+                                // trzeba wprowadzić dane.
+                            }
+                        });
+        builder.show();
+         */
+
 
 
 
@@ -94,8 +108,6 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    // todo dorobić menu w statistics gdzie będzie opcja wczsytania buckupu oraz czyszczenia bazy danych.
-    // następnie sprawdzić czy mamy dostęp do external storage przy urzyciu clasy ReadBuckUp(0;
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
@@ -243,15 +255,6 @@ public class MainActivity extends AppCompatActivity
     }
 }
 
-// kolejna lista co należy jeszsze zrobić
-// TODO doać do listy możliwość usówania
-
-// TODO wstawić w statsinfo kalendarz z zaznaczonymi dniami w których robiłem nadgodziny
-// jeśli robiłem nadgodzinę to na czerwono zaznaczyć jeśli odbirałem to na zielono
-// po kliknięciu na dany dzień powinien wyświetlić się dialog w którym jest informacja o każdym itemie.
-
-
-// TODO zrobić api do wczytywania pliku buckupowego
 
 
 

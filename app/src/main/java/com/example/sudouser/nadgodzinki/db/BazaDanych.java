@@ -2,14 +2,12 @@ package com.example.sudouser.nadgodzinki.db;
 
 import android.content.Context;
 
-import androidx.annotation.NonNull;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
-import androidx.sqlite.db.SupportSQLiteDatabase;
 
 /**
- * klasa BazaDanych jest holderem i to ona zapernia bezpośredni dostęp do danych w bazie
+ * klasa BazaDanych jest holderem i to ona zapewnia bezpośredni dostęp do danych w bazie
  * danych.
  */
 @Database(entities = Item.class, version = 1)
@@ -31,8 +29,8 @@ public abstract class BazaDanych extends RoomDatabase
                 if (INSTANCE == null)
                 {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-                            BazaDanych.class, "Baza_Danych").//addCallback(sRoomDatabaseCallback).
-                            build(); // baza danych to nazwa pliku
+                            BazaDanych.class, "Baza_Danych")//addCallback(sRoomDatabaseCallback).
+                            .build(); // baza danych to nazwa pliku
                 }
             }
         }
@@ -51,5 +49,4 @@ public abstract class BazaDanych extends RoomDatabase
         }
     };
      */
-
 }
