@@ -65,22 +65,6 @@ public class MainActivity extends AppCompatActivity
 
          */
         });
-        /*
-        AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
-        builder.setMessage(getApplicationContext().getDatabasePath("Baza_Danych").getPath())
-                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener()
-                        {
-                            public void onClick(DialogInterface dialog, int id)
-                            {
-                                // nic nie zmieniaj, użytkownik ma tylko przyjąć do wiadomości, że
-                                // trzeba wprowadzić dane.
-                            }
-                        });
-        builder.show();
-         */
-
-
-
 
         // tworzę notyfikator
         /*
@@ -252,6 +236,7 @@ public class MainActivity extends AppCompatActivity
             Toast toast = Toast.makeText(getApplicationContext(), getText(R.string.operation_saved), duration);
             toast.show();
         }
+
     }
 }
 

@@ -26,6 +26,7 @@ public class ReadBuckUp implements ActivityCompat.OnRequestPermissionsResultCall
 {
     private Context mContext;
     private static final int MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 1;
+    private static final int REQUEST_XML_OPEN = 1;
     private int wybranaLiczba;
 
     public ReadBuckUp(Context context)
@@ -60,7 +61,7 @@ public class ReadBuckUp implements ActivityCompat.OnRequestPermissionsResultCall
                 // Toast.makeText(context, "permision is granted", Toast.LENGTH_SHORT).show();
 
 
-                //TODO poniższy kod należy wywlołać w oddzielnym wątku bo za dużo tutaj pieprzenia się,
+//TODO poniższy kod należy wywlołać w oddzielnym wątku bo za dużo tutaj pieprzenia się,
                 // sprawdź czy w folderze Downloads istnieje plik buckupowy.
                 String name = ".xml";
                 File folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
