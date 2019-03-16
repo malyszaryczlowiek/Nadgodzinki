@@ -12,9 +12,9 @@ import org.w3c.dom.Text;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.time.LocalDate;
 import java.util.List;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -42,24 +42,38 @@ public class BuckUpFile
             Document doc = builder.newDocument();
 
             Element rootelement = doc.createElement("ListOfItems");
+            rootelement.setAttribute("appName", "Nadgodzinki");
             doc.appendChild(rootelement);
 
             for (Item i : itemList)
             {
                 Element item = doc.createElement("Item");
 
-                Element data = doc.createElement("Date");
-                Text date = doc.createTextNode("date");
-                data.appendChild(date);
-                item.appendChild(data);
+                Element id = doc.createElement("Id");
+                String stringId = Integer.toString(i.getUid());
+                Text idText = doc.createTextNode(stringId);
+                id.appendChild(idText);
+                item.appendChild(id);
+
+                Element dateOfAddition = doc.createElement("DateOfAddition");
+                Text dateOfAdditionText = doc.createTextNode(i.getDateOfItemAddition());
+                dateOfAddition.appendChild(dateOfAdditionText);
+                item.appendChild(dateOfAddition);
+
+                Element dateOfOvertime = doc.createElement("DateOfOvertime");
+                Text dateOfOvertimeText = doc.createTextNode(i.getDateOfOvertime());
+                dateOfOvertime.appendChild(dateOfOvertimeText);
+                item.appendChild(dateOfOvertime);
 
                 Element godzina = doc.createElement("Hours");
-                Text hours = doc.createTextNode("hours");
+                String godzinaString = Integer.toString(i.getNumberOfHours());
+                Text hours = doc.createTextNode(godzinaString);
                 godzina.appendChild(hours);
                 item.appendChild(godzina);
 
                 Element minuty = doc.createElement("Minutes");
-                Text minutes = doc.createTextNode("minutes");
+                String minutyString = Integer.toString(i.getNumberOfMinutes());
+                Text minutes = doc.createTextNode(minutyString);
                 minuty.appendChild(minutes);
                 item.appendChild(minuty);
 

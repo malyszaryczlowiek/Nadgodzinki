@@ -51,4 +51,5 @@
     <string name="error_external_storage">There is no acces to external storage location. Check if SD card is inserted.</string>
     <string name="error_file_does_not_exist">File does not exist. Please download Buckup file to Download folder.</string>
     <string name="selectBuckupFile">Select Buckup file.</string>
+    <string name="cannot_parse_xml_file">Cannot parse xml file. Incorrect xml scheme.</string>
 </resources>

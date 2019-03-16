@@ -5,6 +5,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.preference.PreferenceManager;
@@ -16,9 +17,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.DocumentsContract;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,14 +31,18 @@ import android.widget.Toast;
 
 import com.example.sudouser.nadgodzinki.BuckUp.BuckUpFile;
 import com.example.sudouser.nadgodzinki.BuckUp.MyFileProvider;
+import com.example.sudouser.nadgodzinki.BuckUp.XmlParser;
 import com.example.sudouser.nadgodzinki.RecyclerViewMain.ItemListAdapter;
 import com.example.sudouser.nadgodzinki.db.Item;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+// implementuje ActivityCompat.OnRequestPermissionsResultCallback bo używamy intentu, który ma zwracać jakiś resultat
 public class StatsInfoActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback
 {
     private ItemViewModel mItemViewModel;
@@ -72,6 +79,12 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
         });
     }
 
+    /*
+    ****************************************************
+    METODY UZYWANE DO OBSŁUGI MENU
+    ****************************************************
+    */
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -99,22 +112,24 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
         }
     }
 
+    /*
+    ****************************************************
+    METODY UZYWANE DO WYCZTANIA BUCKUP'U
+    ****************************************************
+    */
 
-
+    /**
+     * Metoda używana do wczytywania pliku buckupowego.
+     */
     private void readBuckUp()
     {
-        //ReadBuckUp readBuckUp = new ReadBuckUp(this);
-
         if (isExternalStorageWritable())
         {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                     != PackageManager.PERMISSION_GRANTED) {
-                // Permission is not granted
                 Toast.makeText(this, "permision is not granted", Toast.LENGTH_SHORT).show();
-
                 // jako że granted (dostęp) nie jest zaspokojone, trzeba wyświetlić urzytkownikowi
                 // wyjaśnienie dlaczego należy zapytanie zaakceptować.
-
                 // w razie problemów należy tutaj zmienić rzutownaie w pierwszym argumencie na Activity
                 if (ActivityCompat.shouldShowRequestPermissionRationale((AppCompatActivity) this, Manifest.permission.READ_EXTERNAL_STORAGE))
                 {
@@ -129,16 +144,64 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
                 }
             }
             else
-            {
-                // Toast.makeText(context, "permision is granted", Toast.LENGTH_SHORT).show();
+            { // to jest kod, który jest wykonywany gdy permission is granted. tzn. gdy użytkownik zezwoli na dostęp do plików
                 File folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                String name = ".xml";
+                File[] lista = folder.listFiles(); // wczytuje listę plików i folderów z danej lokalizacji
+                // jeśli lista nie jest pusta czyli w folderze Downloads są pliki (jakiekolwiek)
+                if (lista != null)
+                {
+                    // ekstrahuje ścieżki zawierające rozszerzenie xml.
+                    File[] nowaLista = Arrays.stream(lista)
+                            //.filter(file -> file.isFile()) // odfiltrowuje tutaj directory
+                            .filter(File::isFile)            // można też odfiltrować referencją
+                            .filter(file -> file.getName().matches(".*" + name)) // odfiltrowuje tutaj nazwy plików nie zawierające poszukiwanej nazwy.
+                            .toArray(File[]::new);
 
-                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                ///intent.setDataAndType( Uri.fromFile(folder), "text/xml");
-                intent.setType("text/xml");
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                // Only the system receives the ACTION_OPEN_DOCUMENT, so no need to test.
-                startActivityForResult(intent, REQUEST_XML_OPEN);
+                    // jeśli lista jest pusta to wyświetlam dialog z informacją, że nie ma żadnego pasującego pliku
+                    if (nowaLista.length == 0)
+                    {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                        builder.setTitle(R.string.error)
+                                .setMessage(R.string.error_file_does_not_exist)
+                                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id)
+                                    {
+                                        //dialog.cancel();
+                                    }
+                                });
+                        builder.show();
+                    }
+                    else // jeśli natomiast lista nie jest pusta to wyświetl dialog z listą do pojedyńczego odtickowania.
+                    {
+                        // tutaj ekstrahuje ścieżki do samych nazw plików, które zostanę wyświetlone w dialogu do odtick'owania.
+                        String[] listaPlikow = Arrays.stream(nowaLista).map(File::getName).toArray(String[]::new);
+                        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                        builder.setTitle(R.string.selectBuckupFile)
+                                .setItems(listaPlikow, new DialogInterface.OnClickListener()
+                                {
+                                    // metoda, która zostanie wywołana, gdy użytkownik kliknie w którąś z pozycji z nazwą pliku
+                                    // argument which jest indeksem pozycji którą wybieram
+                                    public void onClick(DialogInterface dialog, int which)
+                                    {
+                                        wybranaLiczba = which;
+                                        File chosenFile = nowaLista[wybranaLiczba];
+                                        // wczytuję ścieżkę do pliku zakładając, że kolejność ścieżek absolutnych w nowaLista jest
+                                        // taka sama jak w listaPlikow, przez to wybierając plik wybieram ścieżkę absolutną, którą
+                                        // następnie użyje do wczytania i parsingu pliku.
+
+                                        // parser wczytuje wybraną ścieżkę
+                                        XmlParser parser = new XmlParser(getApplicationContext(), chosenFile);
+                                        List<Item> readItems = parser.returnList();
+                                        mItemViewModel.mergeDatabaseWithBuckupFile(readItems);
+                                    }
+                                });
+                        builder.show();
+
+                    }
+                }
+                else
+                    Toast.makeText(this, folder.getPath(), Toast.LENGTH_SHORT).show();
             }
         }
         else // to jest w przypadku gdy nie można dostać się do external location bo sd card jest niedostępna
@@ -156,6 +219,10 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
         }
     }
 
+    /**
+     * Metoda sprawdza czy można zapsiwać na zewnętrzej karcie pamięci
+     * @return prawda czy fałsz
+     */
     private boolean isExternalStorageWritable()
     {
         String state = Environment.getExternalStorageState();
@@ -167,7 +234,8 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
     }
 
     /**
-     * to jest metoda wywoływana gdy wyświtli się zapytanie o dostęp do folderów.
+     * Metoda wywoływana gdy wyświtli się zapytanie (dialog generowany automatycznie przez Androida)
+     * o dostęp do folderów.
      */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -201,46 +269,95 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
-        if (requestCode == REQUEST_XML_OPEN && resultCode == RESULT_OK) {
-            // tutaj zawarty jest kod
+        if (requestCode == REQUEST_XML_OPEN && resultCode == RESULT_OK)
+        {
             Uri fileUri = data.getData(); // TODO sprawdzić jak wygrzebać ścieżkę z tego URI
+            if (DocumentsContract.isDocumentUri(this, fileUri))
+            {
+                try
+                {
+                    DocumentsContract.Path docPath  = DocumentsContract.findDocumentPath(getContentResolver(),fileUri);
+                    List<String> listaPath = docPath.getPath();
+                    String wynik = "";
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for (String s: listaPath)
+                    {
+                        stringBuilder.append(s);
+                    }
+                    wynik = stringBuilder.toString();
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(R.string.error)
-                    .setMessage("file name: ")
-                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id)
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle(R.string.error)
+                            .setMessage(wynik)
+                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener()
+                            {
+                                public void onClick(DialogInterface dialog, int id)
+                                {
+                                    dialog.cancel();
+                                }
+                            });
+                    builder.show();
+
+
+                    Toast.makeText(this, "DOCUMENT URI!!!", Toast.LENGTH_SHORT).show();
+                    String path;
+                    Cursor cursor = null;
+                    try
+                    {
+                        if (fileUri != null)
                         {
-                            dialog.cancel();
+                            String[] projection = {DocumentsContract.Document.COLUMN_DISPLAY_NAME};
+                            cursor = getContentResolver().query(fileUri, projection, null, null, null);
+                            int column_index = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME);
+                            cursor.moveToFirst();
+                            path = cursor.getString(column_index);
+                            Toast.makeText(this, "path: " + path, Toast.LENGTH_LONG).show();
+
+                            if (fileUri.getPath().equals(path))
+                                Toast.makeText(this, "ścieżki są te same", Toast.LENGTH_LONG).show();
                         }
-                    });
-            builder.show();
-
-
-            // todo tutaj trzeba teraz umieścić całą machinę ze sprawdzeniem czy
+                    }
+                    catch (Exception e)
+                    {
+                        // Log.e("TAG", "getRealPathFromURI Exception : " + e.toString());
+                        Toast.makeText(this, "Wywaliło wyjątek " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        e.printStackTrace();
+                    }
+                    finally
+                    {
+                        if (cursor != null)
+                            cursor.close();
+                    }
+                    //XmlParser parser = new XmlParser(this, file);
+                }
+                catch (FileNotFoundException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+            else
+                Toast.makeText(this, "its not document uri", Toast.LENGTH_SHORT).show();
         }
     }
 
-
     /*
     ****************************************************
-    METODY URZYWANE DO ZROBIENIA BUCKUP'U
+    METODY UżYWANE DO ZROBIENIA BUCKUP'U
     ****************************************************
     */
 
+    /**
+     * Metoda wywoływana
+     */
     private void makeBuckup()
     {
-        // tutaj lepiej dać applicationContext niż this, który odnośi się do aktywności CHYBA, choć this tez działa poprawnie.
         // można też użyć contextu this któ©ego lifecycle jest attached to current context
-
         String email = sharedPreferences.getString("buckup_email","");
         if (email.equals("")) // Todo też do weryfikacji dlaczego może dawac nullPointerException
         {
             LayoutInflater layoutInflater = LayoutInflater.from(StatsInfoActivity.this);
             View promptUserView = layoutInflater.inflate(R.layout.email_dialog, null);
-
             final EditText userAnswer = (EditText) promptUserView.findViewById(R.id.email_editText_dialog);
-
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle(R.string.set_buckup_email)
                     .setView(promptUserView)
@@ -249,11 +366,7 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
                         {
                             String adres = userAnswer.getText().toString();
                             sharedPreferences.edit().putString("buckup_email", adres).apply();
-
-                            int duration = Toast.LENGTH_SHORT;
-                            Toast toast = Toast.makeText(getApplicationContext(), getText(R.string.buckup_email_address_changed), duration);
-                            toast.show();
-
+                            Toast.makeText(getApplicationContext(), getText(R.string.buckup_email_address_changed), Toast.LENGTH_SHORT).show();
                             wyslijbuckup();
                         }
                     })
@@ -261,10 +374,7 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
                         public void onClick(DialogInterface dialog, int id)
                         {
                             dialog.cancel();
-
-                            int duration = Toast.LENGTH_SHORT;
-                            Toast toast = Toast.makeText(getApplicationContext(), getText(R.string.operation_cancelled), duration);
-                            toast.show();
+                            Toast.makeText(getApplicationContext(), getText(R.string.operation_cancelled), Toast.LENGTH_SHORT).show();
                         }
                     });
             builder.show();
@@ -290,6 +400,10 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
             Toast.makeText(getApplicationContext(), "Cannot start email Intent.", Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * Funkcja generuje intent w którym zawieramy plik buckupowy
+     * @return Intent , który w załączniku posiada plik z buckupem
+     */
     private Intent createEmailIntent()
     {
         String email = sharedPreferences.getString("buckup_email","");
@@ -304,8 +418,7 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
 
         if (listOfItems == null)
         {
-            System.out.println("CAŁY CZAS NULL POINTER");
-
+            Toast.makeText(this, "listOfItems jest NULL", Toast.LENGTH_SHORT).show();
             return new Intent();
         }
         else
@@ -313,19 +426,17 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
             System.out.println("Jest ok nie ma null pointera");
             BuckUpFile file = new BuckUpFile(this, listOfItems);
             intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            Uri buckupUri = MyFileProvider.getUriForFile(getApplicationContext(), "com.example.sudouser.nadgodzinki.BuckUp.MyFileProvider", file.getFile());
+            Uri buckupUri = MyFileProvider.getUriForFile(getApplicationContext(),
+                    "com.example.sudouser.nadgodzinki.BuckUp.MyFileProvider", file.getFile());
             intent.putExtra("path", file.getFile().getPath());
             intent.putExtra(Intent.EXTRA_STREAM, buckupUri);
-
             return intent;
         }
     }
 
-
-
     /*
     ****************************************************
-    METODY URZYWANE DO CZYSZCZENIA BAZY DANYCH
+    METODY UżYWANE DO CZYSZCZENIA BAZY DANYCH
     ****************************************************
     */
 
@@ -344,15 +455,10 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
                     {
                         Integer expected = mItemViewModel.getAllItems().getValue().size(); // TODO może produkować nullPointerException
                         Integer result = mItemViewModel.clearDatabase();
-                        int i = -1;
-
                         if (result.equals(expected))
                         {
                             dialog.cancel();
-
-                            int duration = Toast.LENGTH_SHORT;
-                            Toast toast = Toast.makeText(getApplicationContext(), getString(R.string.database_has_beeen_cleared), duration);
-                            toast.show();
+                            Toast.makeText(getApplicationContext(), getString(R.string.database_has_beeen_cleared), Toast.LENGTH_SHORT).show();
                         }
                         else if (result.equals(-1))
                         {
@@ -362,9 +468,7 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
                         else
                         {
                             dialog.cancel();
-                            int duration = Toast.LENGTH_SHORT;
-                            Toast toast = Toast.makeText(getApplicationContext(), "Other problems appeared.", duration);
-                            toast.show();
+                            Toast.makeText(getApplicationContext(), "Other problems appeared.", Toast.LENGTH_SHORT).show();
                         }
                     }
                 })
@@ -372,7 +476,6 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
                     public void onClick(DialogInterface dialog, int id)
                     {
                         dialog.cancel();
-
                         makeBuckup();
                     }
                 })
@@ -380,10 +483,7 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
                     public void onClick(DialogInterface dialog, int id)
                     {
                         dialog.cancel();
-
-                        int duration = Toast.LENGTH_SHORT;
-                        Toast toast = Toast.makeText(getApplicationContext(), getText(R.string.operation_cancelled), duration);
-                        toast.show();
+                        Toast.makeText(getApplicationContext(), getText(R.string.operation_cancelled), Toast.LENGTH_SHORT).show();
                     }
                 });
         builder.show();
@@ -391,6 +491,23 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
 }
 
 
+
+//TODO w drugiej kolejności zrobić api do usunięcia konkretnego wpisu tak aby
+//TODO wybierać w dialogu datę, którą chcemu skasować i zrobić powiadomienia jeśli nie ma w bazie wpisu z takeigo dnia?
+
+
+
+/*
+// uruchamienie intentu do wybierania pliku, który zwróci
+Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+///intent.setDataAndType( Uri.fromFile(folder), "text/xml");
+intent.setType("text/xml");
+intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//intent.addCategory(Intent.CATEGORY_OPENABLE);
+// Only the system receives the ACTION_OPEN_DOCUMENT, so no need to test.
+if (intent.resolveActivity(getPackageManager()) != null)
+startActivityForResult(intent, REQUEST_XML_OPEN);
+*/
 
 
 

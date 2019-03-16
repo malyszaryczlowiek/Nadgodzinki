@@ -41,7 +41,7 @@
     <string name="notification_channel_description">notification_channel_description</string>
     <string name="notification_channel_name">notification_channel_name</string>
     <string name="clear_database">Czy chcesz usunąć wszystkie nadgodziny?</string>
-    <string name="clear_database_desctription">Czyszczenie bazy spowoduje nieodwracalne usunięcie wszystkich wpisów. Jeśli na pewno chcesz to zrobić, najpierw wykonaj na wszelki wypadek backup.</string>
+    <string name="clear_database_desctription">Czyszczenie bazy spowoduje nieodwracalne usunięcie wszystkich wpisów. Jeśli na pewno chcesz to zrobić, wykonaj najpierw backup na wszelki wypadek.</string>
     <string name="clear_all">Wyczyść wszystko</string>
     <string name="clear">Usuń</string>
     <string name="make_buckup">Wykonaj buckup</string>
@@ -51,4 +51,5 @@
     <string name="error_external_storage">Brak dostępu do zewnętrzej lokalizacji. Sprawdź czy karta pamięci jest włożona.</string>
     <string name="error_file_does_not_exist">Brak pliku Buckup\'u. Pobierz zapisany plik do folderu Pobrane i spróbuj ponownie.</string>
     <string name="selectBuckupFile">Wybierz plik Buckupu.</string>
+    <string name="cannot_parse_xml_file">"Błąd odczytu pliku xml. "</string>
 </resources>

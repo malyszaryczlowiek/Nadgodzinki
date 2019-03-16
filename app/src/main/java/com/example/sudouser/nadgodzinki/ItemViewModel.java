@@ -7,6 +7,7 @@ import com.example.sudouser.nadgodzinki.db.Item;
 import java.time.LocalDate;
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -22,6 +23,7 @@ public class ItemViewModel extends AndroidViewModel
      * i z któ©ych będziemy przekazywali sobie dane. */
     private Repository mRepository;
     private LiveData<List<Item>> allItems;
+    private MutableLiveData<List<Item>> mItemsFromBuckUp = new MutableLiveData<>();
     private MutableLiveData<LocalDate> localeDataLiveData = new MutableLiveData<>();
 
 
@@ -57,5 +59,10 @@ public class ItemViewModel extends AndroidViewModel
         if (localeDataLiveData == null)
             System.out.println("Nie wiem jak to rozwiązać cały czas null");
         return localeDataLiveData;
+    }
+
+    public void mergeDatabaseWithBuckupFile(@NonNull List<Item> itemsFromBuckUp)
+    {
+        mRepository.mergeDatabaseWithBuckupFile(itemsFromBuckUp);
     }
 }

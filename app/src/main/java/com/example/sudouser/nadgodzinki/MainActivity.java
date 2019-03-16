@@ -39,13 +39,10 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         mItemViewModel = ViewModelProviders.of(this).get(ItemViewModel.class);
         //sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         // to nie jest dobre rozwiązanie ponieważ przypisanie jest wykonywane w głównym watku
         // należy to przenieść do jakiegoś pobocznego wątku.
-
-        Toast.makeText(getApplicationContext(), getApplicationContext().getDatabasePath("Baza_Danych").getPath(), Toast.LENGTH_LONG).show();
 
         final CalendarView calendar = findViewById(R.id.mainCalendar);
         mItemViewModel.setLocalDate(LocalDate.ofEpochDay( (calendar.getDate()/(24*3600*1000))));

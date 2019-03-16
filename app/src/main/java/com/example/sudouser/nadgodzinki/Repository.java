@@ -71,6 +71,10 @@ public class Repository
         }
     }
 
+    public void mergeDatabaseWithBuckupFile(List<Item> items)
+    {
+        new updateDatabaseAsyncTask(tabelaDao).execute(items);
+    }
 
 
     private static class insertAsyncTask extends AsyncTask<Item, Void, Void>
@@ -93,12 +97,9 @@ public class Repository
         }
     }
 
-
-
     private static class clearDatabaseAsyncTask extends AsyncTask<Void, Void, Integer>
     {
         private TabelaDao mAsyncTaskDao;
-
         // konstruktor w którym przypisujemy dao do wewnętrznego dao
         clearDatabaseAsyncTask(TabelaDao dao)
         {
@@ -110,6 +111,26 @@ public class Repository
         protected Integer doInBackground(final Void... b)
         {
             return mAsyncTaskDao.clearDatabase();
+        }
+    }
+
+    private static class updateDatabaseAsyncTask extends AsyncTask<List<Item>, Void, Void>
+    {
+        private TabelaDao mAsyncTaskDao;
+        // konstruktor w którym przypisujemy dao do wewnętrznego dao
+        updateDatabaseAsyncTask(TabelaDao dao)
+        {
+            mAsyncTaskDao = dao;
+        }
+
+        @Override
+        protected Void doInBackground(final List<Item>... lists)
+        {
+            for (Item item : lists[0])
+            {
+                mAsyncTaskDao.insert(item);
+            }
+            return null;
         }
     }
 }
