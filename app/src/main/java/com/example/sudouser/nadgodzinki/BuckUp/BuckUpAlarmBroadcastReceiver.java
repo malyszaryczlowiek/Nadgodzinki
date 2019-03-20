@@ -3,36 +3,39 @@ package com.example.sudouser.nadgodzinki.BuckUp;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 
-
 import com.example.sudouser.nadgodzinki.R;
+import com.example.sudouser.nadgodzinki.StatsInfoActivity;
 
 import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
-public class Notifier
+
+/**
+ * Broadcast receiver, który jest uruchamiany w momencie gdy AlarmManager z poziomu systemu
+ * wysyła alarm w postaci intentu o setAction("com.example.sudouser.nadgodzinki.BuckUpNotification")
+ *
+ */
+public class BuckUpAlarmBroadcastReceiver extends BroadcastReceiver
 {
-    private String CHANNEL_ID = "CHANNEL_ID";
-    private int notificationId = 0;
+    private String CHANNEL_ID = "CHANNEL_ID_2";
+    private int notificationId = 1;
 
-    public Notifier(Context context, Intent intent)
+    @Override
+    public void onReceive(Context context, Intent intentFromAlarm)
     {
-        createNotification(context, intent);
-        //createNotificationChannel(context);
-
-    }
-
-    private void createNotification(Context context, Intent intent)
-    {
-        Intent[] tablica = new Intent[] {intent};
-        PendingIntent pendingIntent = PendingIntent.getActivities(context, 0, tablica, 0);
+        Intent intent = new Intent(context, StatsInfoActivity.class).putExtra("fromNotifier", true);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.notification_icon)
                 .setContentTitle("content title")
                 .setContentText("content text")
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText("tu jest text który pojawi się " +
                         "gdy notyfikacja jest expandible. tzn pociągając w dół pojawiają się dodadtkowe" +
                         " linie textu."))
@@ -41,6 +44,9 @@ public class Notifier
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true); // to automatycznie usówa notyfikacje gdy urzytkownik na nią klilknie
 
+
+        // towrzenie już istniejącego kanału jest operacją typu no-op czyli nie
+        // wnosi nic nowego, nie ma żadnego wpływu
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
@@ -54,18 +60,10 @@ public class Notifier
             // or other notification behaviors after this
             NotificationManager notificationManager =  context.getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
-
             notificationManager.notify(notificationId, builder.build());
+            //NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
+            //notificationManagerCompat.createNotificationChannel(channel);
+            //notificationManagerCompat.notify(notificationId, builder.build());
         }
     }
-
-    // jeśli urzytkownik kliknie w powiadomienie to wywoła intent (service) z aplikacji Nadgodzinki, który w tle wygeneruje plik
-    // buckupu
-
-    // do notyfikatora
-    private void createNotificationChannel(Context context)
-    {
-
-    }
-
 }

@@ -5,7 +5,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.preference.PreferenceManager;
@@ -13,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -48,11 +48,11 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
     private ItemViewModel mItemViewModel;
     private SharedPreferences sharedPreferences;
     private List<Item> listOfItems =  new ArrayList<>();
+    private Context thisContext = this;
 
     // stałe wykorzystane w metodzie readBuckUp()
     private static final int MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 1;
     private static final int REQUEST_XML_OPEN = 1;
-    private int wybranaLiczba;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -77,6 +77,9 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
                 adapter.setmItems(items);
             }
         });
+
+        if (getIntent().getBooleanExtra("fromNotifier", false))
+            makeBuckup();
     }
 
     /*
@@ -184,14 +187,12 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
                                     // argument which jest indeksem pozycji którą wybieram
                                     public void onClick(DialogInterface dialog, int which)
                                     {
-                                        wybranaLiczba = which;
-                                        File chosenFile = nowaLista[wybranaLiczba];
+                                        File chosenFile = nowaLista[which];
                                         // wczytuję ścieżkę do pliku zakładając, że kolejność ścieżek absolutnych w nowaLista jest
                                         // taka sama jak w listaPlikow, przez to wybierając plik wybieram ścieżkę absolutną, którą
                                         // następnie użyje do wczytania i parsingu pliku.
-
                                         // parser wczytuje wybraną ścieżkę
-                                        XmlParser parser = new XmlParser(getApplicationContext(), chosenFile);
+                                        XmlParser parser = new XmlParser(thisContext, chosenFile);
                                         List<Item> readItems = parser.returnList();
                                         mItemViewModel.mergeDatabaseWithBuckupFile(readItems);
                                     }

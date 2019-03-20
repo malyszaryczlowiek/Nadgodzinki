@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 
 /**
@@ -23,7 +24,8 @@ public interface TabelaDao
     // jeśli na przykłąd używamy @Query to jest to o tyle dobrze, że poprawność zapytania jest sprawdzana
     // już na poziomie kompilacji przez co dostaniemy najwyżej compile error a nie runtime error.
 
-    @Insert//(onConflict = OnConflictStrategy.REPLACE))
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(Item item);
 
     @Query("SELECT * FROM tabela ORDER BY DateOfOvertime")
@@ -69,4 +71,3 @@ public interface TabelaDao
 
 // TODO pododawać dodatkowe query aby dało się
 // 1. usunąć ostatni wpis
-// 2. dodać item z ujemnymi wartościami godzin i mitu co oznacza, że właśnie odebraliśmu sobie nadgodzinę

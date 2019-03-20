@@ -63,7 +63,7 @@ public class XmlParser
                             {
                                 Element cecha = (Element) element;
                                 Text textNode = (Text) cecha.getFirstChild();
-                                String value = textNode.getData().trim(); // trim() omija whitespaces w wartości elementu
+                                String value = textNode.getData().trim(); // trim() omija whitespaces (bo te są Text, więc odpadną) w wartości elementu
                                 switch (cecha.getTagName())
                                 {
                                     //TODO jeśli new Item() wyjebie nullPointerException to znaczy, że trzeba wywalić break
@@ -100,6 +100,8 @@ public class XmlParser
             else
             {
                 // info że cannot parse xml file
+                // UWAGA!!! Do konstruktora AlertDialog.Builder'a można wstawić tylko kontext danego activity
+                // nie można natomiast wstawić getApplicationContext() bo wywala wyjątek
                 AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
                 dialogBuilder.setTitle(R.string.error)
                         .setMessage(R.string.cannot_parse_xml_file)

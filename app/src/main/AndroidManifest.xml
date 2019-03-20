@@ -3,6 +3,8 @@
     package="com.example.sudouser.nadgodzinki">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SET_ALARM" />
 
     <application
         android:allowBackup="true"
@@ -14,6 +16,7 @@
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -23,14 +26,29 @@
         <activity
             android:name=".SettingsPreferences"
             android:parentActivityName=".MainActivity" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.example.sudouser.nadgodzinki.BuckUp.MyFileProvider"
-            android:grantUriPermissions="true"
-            android:exported="false">
+            android:exported="false"
+            android:grantUriPermissions="true">
+
+            <!--
+            provider oznacza tutuj, że to my (aplikacja) dostarczamy treść na zewnątrz
+            w tym przypadku jest to plik buckupu
+            -->
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />
         </provider>
+        <!-- receiver, który będzie wywołany gdy użądzenie zostanie bootowane ponownie -->
+        <receiver
+            android:name=".BuckUp.BuckUpAlarmBroadcastReceiver"/>
+        <receiver
+            android:name=".BuckUp.BootCompletedBroadcastReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

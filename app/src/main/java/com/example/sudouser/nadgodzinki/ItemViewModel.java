@@ -56,8 +56,6 @@ public class ItemViewModel extends AndroidViewModel
 
     public LiveData<LocalDate> getLocalDate()
     {
-        if (localeDataLiveData == null)
-            System.out.println("Nie wiem jak to rozwiązać cały czas null");
         return localeDataLiveData;
     }
 
