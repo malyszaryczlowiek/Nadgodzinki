@@ -80,8 +80,6 @@ public class Repository
     private static class insertAsyncTask extends AsyncTask<Item, Void, Void>
     {
         private TabelaDao mAsyncTaskDao;
-
-        /** konstruktor w którym przypisujemy dao do wewnętrznego dao*/
         insertAsyncTask(TabelaDao dao)
         {
             mAsyncTaskDao = dao;
@@ -100,7 +98,6 @@ public class Repository
     private static class clearDatabaseAsyncTask extends AsyncTask<Void, Void, Integer>
     {
         private TabelaDao mAsyncTaskDao;
-        // konstruktor w którym przypisujemy dao do wewnętrznego dao
         clearDatabaseAsyncTask(TabelaDao dao)
         {
             mAsyncTaskDao = dao;
@@ -117,7 +114,6 @@ public class Repository
     private static class updateDatabaseAsyncTask extends AsyncTask<List<Item>, Void, Void>
     {
         private TabelaDao mAsyncTaskDao;
-        // konstruktor w którym przypisujemy dao do wewnętrznego dao
         updateDatabaseAsyncTask(TabelaDao dao)
         {
             mAsyncTaskDao = dao;

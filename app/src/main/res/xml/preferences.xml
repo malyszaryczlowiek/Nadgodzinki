@@ -22,7 +22,7 @@
             />
 
         <ListPreference
-            android:dialogTitle="Choose buckup period"
+            android:dialogTitle="@string/choose_buckup_period"
             android:dependency="buckup_enabled"
             android:key="buckupList"
             android:title="@string/buckup_frequency"

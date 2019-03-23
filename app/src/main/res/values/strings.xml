@@ -38,7 +38,7 @@
     <string name="set_non_null_time">Set non null time.</string>
     <string name="operation_cancelled">Operation cancelled.</string>
     <string name="delete">Delete</string>
-    <string name="notification_channel_name">notification_channel_name</string>
+    <string name="notification_channel_name">Buckup request notifications</string>
     <string name="notification_channel_description">notification_channel_description</string>
     <string name="clear_database">Do you want clear database?</string>
     <string name="clear_database_desctription">Clearing database is indivertible. You lost all informations stored in app. If you want do so, please do buckup first.</string>
@@ -52,4 +52,8 @@
     <string name="error_file_does_not_exist">File does not exist. Please download Buckup file to Download folder.</string>
     <string name="selectBuckupFile">Select Buckup file.</string>
     <string name="cannot_parse_xml_file">Cannot parse xml file. Incorrect xml scheme.</string>
+    <string name="buckup_notification_title">Buckup file creation request</string>
+    <string name="buckup_notification_text">Save Buckup File on your mail or one of...</string>
+    <string name="buckup_notification_text_big">Save Buckup File on your mail or one of cloud service like Google Drive, in order to be able to get back lost data.</string>
+    <string name="choose_buckup_period">Choose Buckup period</string>
 </resources>

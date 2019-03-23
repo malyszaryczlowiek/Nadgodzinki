@@ -30,9 +30,12 @@ public class BootCompletedBroadcastReceiver extends BroadcastReceiver
     @Override
     public void onReceive(Context context, Intent intentFromSystem)
     {
+        // to należy uruchomić przy użyciu powyższych metod
+        // https://developer.android.com/guide/components/broadcasts#effects-process-state
+        // chedule a JobService from the receiver using the JobScheduler, so the system knows that the process continues to perform active work. For more information, see Processes and Application Life Cycle.
         if (intentFromSystem.getAction() != null && intentFromSystem.getAction().equals("android.intent.action.BOOT_COMPLETED"))
         {
-            SharedPreferences mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context); // nie wiem czy tutaj nie będzie trzeba getApplicationContext()
+            SharedPreferences mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
             if (mSharedPreferences.getBoolean("buckup_enabled", true))
             {
                 AlarmManager mAlarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);

@@ -40,15 +40,13 @@
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />
-        </provider>
-        <!-- receiver, który będzie wywołany gdy użądzenie zostanie bootowane ponownie -->
-        <receiver
-            android:name=".BuckUp.BuckUpAlarmBroadcastReceiver"/>
-        <receiver
-            android:name=".BuckUp.BootCompletedBroadcastReceiver">
+        </provider> <!-- receiver, który będzie wywołany gdy użądzenie zostanie bootowane ponownie -->
+        <receiver android:name=".BuckUp.BuckUpAlarmBroadcastReceiver" />
+        <receiver android:name=".BuckUp.BootCompletedBroadcastReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
     </application>
+
 </manifest>
