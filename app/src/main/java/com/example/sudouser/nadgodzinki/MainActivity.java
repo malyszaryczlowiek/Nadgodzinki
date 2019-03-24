@@ -7,7 +7,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,6 +18,7 @@ import com.example.sudouser.nadgodzinki.BuckUp.BuckUpAlarmBroadcastReceiver;
 import com.example.sudouser.nadgodzinki.db.Item;
 
 import java.time.LocalDate;
+import java.util.Calendar;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity
     private SharedPreferences mSharedPreferences;
     private AlarmManager mAlarm;
     private PendingIntent mPendingIntent;
-    private static final int pendingIntentRequestCode = 17;
+    private static final int pendingIntentRequestCode = 2;
 
     /**
      * Jest to pierwsza z metod callback - jest ona wykonywana tylko raz w momencie gdy tworzona jest
@@ -49,7 +49,6 @@ public class MainActivity extends AppCompatActivity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
 
         // TODO zrobić najpierw nowy wątek dla mItemViewModel'a to nam potwierdzi lub obali koncepcję
         // czy można w ten sposób uruchamiać Activity
@@ -85,7 +84,6 @@ public class MainActivity extends AppCompatActivity
         // zaimplementowac mSharedPreferences
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         createAlarmManager();
-
     }
 
     /**
@@ -97,17 +95,35 @@ public class MainActivity extends AppCompatActivity
     {
         if (mSharedPreferences.getBoolean("buckup_enabled", true))
         {
+            long intervalMillis;
+            switch (mSharedPreferences.getString("buckupList", "week"))
+            {
+                case "week":
+                    intervalMillis = (long) 1000 * 3600 * 24 * 7;
+                    break;
+                case "month":
+                    intervalMillis = (long) 1000 * 3600 * 24 * 7 * 4 ;
+                    break;
+                case "quarter":
+                    intervalMillis = (long) 1000 * 3600 * 24 * 7 * 13;
+                    break;
+                default:
+                    intervalMillis = (long) 1000 * 3600 * 24 * 7;
+                    break;
+            }
+            int chosenDay = Integer.valueOf(mSharedPreferences.getString("buckupDay", "6"));//getInt("buckupDay", 6);
+            long today = LocalDate.now().toEpochDay() * 1000 * 3600 * 24;
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(today);
+            calendar.add(Calendar.DAY_OF_WEEK, Math.abs(calendar.get(Calendar.DAY_OF_WEEK) - chosenDay));
+            calendar.add(Calendar.HOUR_OF_DAY, 18);
+
             mAlarm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-            Intent intent = new Intent(this, BuckUpAlarmBroadcastReceiver.class)
-                    .setAction("com.example.sudouser.nadgodzinki");
-            mPendingIntent = PendingIntent.getBroadcast(this, pendingIntentRequestCode,
-                    intent, PendingIntent.FLAG_UPDATE_CURRENT);
-            mAlarm.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                    SystemClock.elapsedRealtime(), 10 * 1000, mPendingIntent);
+            Intent intent = new Intent(getApplicationContext(), BuckUpAlarmBroadcastReceiver.class);
+            mPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), pendingIntentRequestCode,
+                    intent, PendingIntent.FLAG_UPDATE_CURRENT); // TODO ewentualnie zamienić na cancell current
+            mAlarm.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), intervalMillis, mPendingIntent);
         }
-        else
-            if (mAlarm != null)
-                mAlarm.cancel(mPendingIntent);
     }
 
     /**
@@ -123,10 +139,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onDestroy()
     {
-        // this.unregisterReceiver(br);
-        // casujemy listentery
-        //mSharedPreferences.unregisterOnSharedPreferenceChangeListener(listener);
-        cancelAlarm();
         super.onDestroy();
     }
 

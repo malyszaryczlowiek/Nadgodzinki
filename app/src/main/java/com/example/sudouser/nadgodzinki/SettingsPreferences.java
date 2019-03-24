@@ -7,15 +7,20 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.SystemClock;
-
+import android.widget.Toast;
 
 import com.example.sudouser.nadgodzinki.BuckUp.BuckUpAlarmBroadcastReceiver;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Calendar;
+import java.util.TimeZone;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity; // to tez działa
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
-
 
 public class SettingsPreferences extends AppCompatActivity // moze też być  PreferenceActivity
 {
@@ -23,14 +28,13 @@ public class SettingsPreferences extends AppCompatActivity // moze też być  Pr
     private SharedPreferences.OnSharedPreferenceChangeListener listener;
     private AlarmManager mAlarm;
     private PendingIntent mPendingIntent;
-    private static final int pendingIntentRequestCode = 17;
+    private static final int pendingIntentRequestCode = 2;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         getSupportFragmentManager().beginTransaction().replace(android.R.id.content, new SettingsPreferencesFragment() ).commit();
-
 
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         createAlarmManager();
@@ -48,6 +52,10 @@ public class SettingsPreferences extends AppCompatActivity // moze też być  Pr
                             cancelAlarm();
                         break;
                     case "buckupList":
+                        createAlarmManager();
+                        break;
+                    case "buckupDay":
+                        createAlarmManager();
                         break;
                     default:
                         break;
@@ -59,7 +67,6 @@ public class SettingsPreferences extends AppCompatActivity // moze też być  Pr
     @Override
     protected void onDestroy()
     {
-        mSharedPreferences.unregisterOnSharedPreferenceChangeListener(listener);
         super.onDestroy();
     }
 
@@ -80,17 +87,36 @@ public class SettingsPreferences extends AppCompatActivity // moze też być  Pr
     {
         if (mSharedPreferences.getBoolean("buckup_enabled", true))
         {
+            long intervalMillis;
+            switch (mSharedPreferences.getString("buckupList", "week"))
+            {
+                case "week":
+                    intervalMillis = (long) 1000 * 3600 * 24 * 7;
+                    break;
+                case "month":
+                    intervalMillis = (long) 1000 * 3600 * 24 * 7 * 4 ;
+                    break;
+                case "quarter":
+                    intervalMillis = (long) 1000 * 3600 * 24 * 7 * 13;
+                    break;
+                default:
+                    intervalMillis = (long) 1000 * 3600 * 24 * 7;
+                    break;
+            }
+            int chosenDay = Integer.valueOf(mSharedPreferences.getString("buckupDay", "6"));//getInt("buckupDay", 6);
+            long today = LocalDate.now().toEpochDay() * 1000 * 3600 * 24;
+            //LocalDate.now().plusDays()
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(today);
+            calendar.add(Calendar.DAY_OF_WEEK, Math.abs(calendar.get(Calendar.DAY_OF_WEEK) - chosenDay));
+            calendar.add(Calendar.HOUR_OF_DAY, 18);
+            long wynik = calendar.getTimeInMillis();
             mAlarm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-            Intent intent = new Intent(this, BuckUpAlarmBroadcastReceiver.class)
-                    .setAction("com.example.sudouser.nadgodzinki");
-            mPendingIntent = PendingIntent.getBroadcast(this, pendingIntentRequestCode,
-                    intent, PendingIntent.FLAG_UPDATE_CURRENT);
-            mAlarm.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                    SystemClock.elapsedRealtime(), 10 * 1000, mPendingIntent);
+            Intent intent = new Intent(getApplicationContext(), BuckUpAlarmBroadcastReceiver.class);
+            mPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), pendingIntentRequestCode,
+                    intent, PendingIntent.FLAG_UPDATE_CURRENT); // TODO ewentualnie zamienić na cancell current
+            mAlarm.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), intervalMillis, mPendingIntent);
         }
-        else
-        if (mAlarm != null)
-            mAlarm.cancel(mPendingIntent);
     }
 
     /**

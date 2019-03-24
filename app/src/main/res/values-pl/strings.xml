@@ -56,4 +56,6 @@
     <string name="buckup_notification_text_big">Zapisz plik kopii zapasowej na skrzynce pocztowej lub w jednej z usług chmurowych typu Google Drive, by w razie potrzeby móc pobrać plik i wgrać ponownie utracone dane.</string>
     <string name="buckup_notification_text">Zapisz plik kopii zapasowej na skrzynce pocztowej lub...</string>
     <string name="choose_buckup_period">Wybierz częstotliwość powiadomień</string>
+    <string name="choose_notification_day">Wybierz dzień powiadomień</string>
+    <string name="buckup_day">Dzień powiadomień</string>
 </resources>

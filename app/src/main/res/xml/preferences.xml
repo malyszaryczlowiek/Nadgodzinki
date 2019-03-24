@@ -28,7 +28,18 @@
             android:title="@string/buckup_frequency"
             android:entries="@array/buckup_list"
             android:entryValues="@array/buckup_list_values"
-            android:defaultValue="every_week"
+            android:defaultValue="week"
+            app:useSimpleSummaryProvider="true"
+            />
+
+        <ListPreference
+            android:dialogTitle="@string/choose_notification_day"
+            android:dependency="buckup_enabled"
+            android:key="buckupDay"
+            android:title="@string/buckup_day"
+            android:entries="@array/buckup_list_of_dayweeks"
+            android:entryValues="@array/buckup_list_of_dayweeks_values"
+            android:defaultValue="6"
             app:useSimpleSummaryProvider="true"
             />
 

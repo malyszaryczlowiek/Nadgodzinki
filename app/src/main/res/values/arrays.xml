@@ -11,4 +11,24 @@
         <item name="every_month">month</item>
         <item name="every_quarter">quarter</item>
     </string-array>
+
+    <string-array name="buckup_list_of_dayweeks" >
+        <item name="monday">Monday</item>
+        <item name="tuesday">Tuesday</item>
+        <item name="wednesday">Wednesday</item>
+        <item name="thursday">Thursday</item>
+        <item name="friday">Friday</item>
+        <item name="saturday">Saturday</item>
+        <item name="sunday">Sunday</item>
+    </string-array>
+
+    <string-array name="buckup_list_of_dayweeks_values" >
+        <item name="monday">2</item>
+        <item name="tuesday">3</item>
+        <item name="wednesday">4</item>
+        <item name="thursday">5</item>
+        <item name="friday">6</item>
+        <item name="saturday">7</item>
+        <item name="sunday">1</item>
+    </string-array>
 </resources>

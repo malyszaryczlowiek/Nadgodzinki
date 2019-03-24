@@ -6,7 +6,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.SystemClock;
+
+import java.time.LocalDate;
+import java.util.Calendar;
 
 import androidx.preference.PreferenceManager;
 
@@ -17,6 +19,9 @@ import androidx.preference.PreferenceManager;
  */
 public class BootCompletedBroadcastReceiver extends BroadcastReceiver
 {
+    private SharedPreferences mSharedPreferences;
+    private static final int pendingIntentRequestCode = 2;
+
     /**
      * Metoda, która będzie wywołana gdy, zgodznie z tym co jest w manifeście,
      * system wyśle intent, który ma w setAction() ustawione
@@ -30,11 +35,16 @@ public class BootCompletedBroadcastReceiver extends BroadcastReceiver
     @Override
     public void onReceive(Context context, Intent intentFromSystem)
     {
+
         // to należy uruchomić przy użyciu powyższych metod
         // https://developer.android.com/guide/components/broadcasts#effects-process-state
         // chedule a JobService from the receiver using the JobScheduler, so the system knows that the process continues to perform active work. For more information, see Processes and Application Life Cycle.
         if (intentFromSystem.getAction() != null && intentFromSystem.getAction().equals("android.intent.action.BOOT_COMPLETED"))
         {
+            mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+            createAlarmManager(context);
+
+            /*
             SharedPreferences mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
             if (mSharedPreferences.getBoolean("buckup_enabled", true))
             {
@@ -44,6 +54,44 @@ public class BootCompletedBroadcastReceiver extends BroadcastReceiver
                 mAlarm.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
                         SystemClock.elapsedRealtime() + 10 * 1000, 10* 1000, mPendingIntent);
             }
+             */
+        }
+    }
+
+    private void createAlarmManager(Context context)
+    {
+        AlarmManager mAlarm;
+        PendingIntent mPendingIntent;
+        if (mSharedPreferences.getBoolean("buckup_enabled", true))
+        {
+            long intervalMillis;
+            switch (mSharedPreferences.getString("buckupList", "week"))
+            {
+                case "week":
+                    intervalMillis = (long) 1000 * 3600 * 24 * 7;
+                    break;
+                case "month":
+                    intervalMillis = (long) 1000 * 3600 * 24 * 7 * 4 ;
+                    break;
+                case "quarter":
+                    intervalMillis = (long) 1000 * 3600 * 24 * 7 * 13;
+                    break;
+                default:
+                    intervalMillis = (long) 1000 * 3600 * 24 * 7;
+                    break;
+            }
+            int chosenDay = Integer.valueOf(mSharedPreferences.getString("buckupDay", "6"));//getInt("buckupDay", 6);
+            long today = LocalDate.now().toEpochDay() * 1000 * 3600 * 24;
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(today);
+            calendar.add(Calendar.DAY_OF_WEEK, Math.abs(calendar.get(Calendar.DAY_OF_WEEK) - chosenDay));
+            calendar.add(Calendar.HOUR_OF_DAY, 18);
+
+            mAlarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            Intent intent = new Intent(context.getApplicationContext(), BuckUpAlarmBroadcastReceiver.class);
+            mPendingIntent = PendingIntent.getBroadcast(context.getApplicationContext(), pendingIntentRequestCode,
+                    intent, PendingIntent.FLAG_UPDATE_CURRENT); // TODO ewentualnie zamienić na cancell current
+            mAlarm.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), intervalMillis, mPendingIntent);
         }
     }
 }

@@ -23,7 +23,6 @@ public class ItemViewModel extends AndroidViewModel
      * i z któ©ych będziemy przekazywali sobie dane. */
     private Repository mRepository;
     private LiveData<List<Item>> allItems;
-    private MutableLiveData<List<Item>> mItemsFromBuckUp = new MutableLiveData<>();
     private MutableLiveData<LocalDate> localeDataLiveData = new MutableLiveData<>();
 
 

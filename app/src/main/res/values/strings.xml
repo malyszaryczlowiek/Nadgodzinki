@@ -56,4 +56,6 @@
     <string name="buckup_notification_text">Save Buckup File on your mail or one of...</string>
     <string name="buckup_notification_text_big">Save Buckup File on your mail or one of cloud service like Google Drive, in order to be able to get back lost data.</string>
     <string name="choose_buckup_period">Choose Buckup period</string>
+    <string name="choose_notification_day">Choose notification day</string>
+    <string name="buckup_day">Day of Buckup</string>
 </resources>
