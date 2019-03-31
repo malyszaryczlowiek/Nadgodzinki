@@ -65,7 +65,7 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
         mItemViewModel.getAllItems().observe(this, items -> listOfItems = items );
 
         RecyclerView recyclerView = findViewById(R.id.allItemsTable);
-        final ItemListAdapter adapter = new ItemListAdapter(this);
+        final ItemListAdapter adapter = new ItemListAdapter(this, mItemViewModel); // TODO uwaga na znacznik final, może chyba powodować kłopoty
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -74,7 +74,7 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
             @Override
             public void onChanged(List<Item> items)
             {
-                adapter.setmItems(items);
+                adapter.setItems(items);
             }
         });
 
@@ -493,22 +493,11 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
 
 
 
-//TODO w drugiej kolejności zrobić api do usunięcia konkretnego wpisu tak aby
-//TODO wybierać w dialogu datę, którą chcemu skasować i zrobić powiadomienia jeśli nie ma w bazie wpisu z takeigo dnia?
 
 
 
-/*
-// uruchamienie intentu do wybierania pliku, który zwróci
-Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-///intent.setDataAndType( Uri.fromFile(folder), "text/xml");
-intent.setType("text/xml");
-intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-//intent.addCategory(Intent.CATEGORY_OPENABLE);
-// Only the system receives the ACTION_OPEN_DOCUMENT, so no need to test.
-if (intent.resolveActivity(getPackageManager()) != null)
-startActivityForResult(intent, REQUEST_XML_OPEN);
-*/
+
+
 
 
 

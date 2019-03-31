@@ -6,61 +6,64 @@
     android:layout_height="match_parent"
     tools:context=".StatsInfoActivity">
 
-    <TextView
-        android:id="@+id/statsMinutesNumber"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:text="@string/zerozero"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/statsLayaout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="8dp"
-        android:text="@string/overtime_number"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toStartOf="@+id/statHoursText"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/allItemsTable"
-        android:layout_width="344dp"
-        android:layout_height="449dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/spinnerEditTextMinutes"
         tools:listitem="@layout/recyclerview_item" />
 
     <TextView
-        android:id="@+id/statHoursText"
-        android:layout_width="26dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="8dp"
-        android:text="@string/zero"
-        android:textAlignment="viewEnd"
+        android:id="@+id/spinnerColon"
+        android:layout_width="10dp"
+        android:layout_height="0dp"
+        android:text="@string/colon"
+        android:textAlignment="center"
         android:textSize="18sp"
-        app:layout_constraintEnd_toStartOf="@+id/statsDwukropek"
+        app:layout_constraintBaseline_toBaselineOf="@+id/spinnerEditTextMinutes"
+        app:layout_constraintEnd_toStartOf="@+id/spinnerEditTextMinutes"
+        app:layout_constraintStart_toEndOf="@+id/spinnerEditTextHours" />
+
+    <EditText
+        android:id="@+id/spinnerEditTextMinutes"
+        android:layout_width="37dp"
+        android:layout_height="0dp"
+        android:importantForAutofill="no"
+        android:ems="10"
+        android:hint="@string/zerozero"
+        android:inputType="numberSigned"
+        android:textAlignment="center"
+        app:layout_constraintStart_toEndOf="@+id/spinnerColon"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/statsDwukropek"
-        android:layout_width="wrap_content"
+    <Spinner
+        android:id="@+id/spinnerCzasNadgodziny"
+        android:layout_width="112dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="8dp"
-        android:text="@string/colon"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toStartOf="@+id/statsMinutesNumber"
+        app:layout_constraintStart_toEndOf="@+id/spinnerSortowanie"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Spinner
+        android:id="@+id/spinnerSortowanie"
+        android:layout_width="156dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/spinnerEditTextHours"
+        android:layout_width="24dp"
+        android:layout_height="0dp"
+        android:importantForAutofill="no"
+        android:ems="10"
+        android:hint="@string/zero"
+        android:inputType="numberSigned"
+        android:textAlignment="center"
+        app:layout_constraintStart_toEndOf="@+id/spinnerCzasNadgodziny"
         app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

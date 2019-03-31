@@ -22,10 +22,16 @@
         </activity>
         <activity
             android:name=".StatsInfoActivity"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".MainActivity"
+            android:label="@string/statistics"/>
         <activity
             android:name=".SettingsPreferences"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".MainActivity"
+            android:label="@string/settings"/>
+        <activity
+            android:name=".Settings.ListOfCategoriesActivity"
+            android:parentActivityName=".MainActivity"
+            android:label="Test"/>
 
         <provider
             android:name="androidx.core.content.FileProvider"

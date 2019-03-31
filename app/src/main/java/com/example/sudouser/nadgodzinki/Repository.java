@@ -2,7 +2,6 @@ package com.example.sudouser.nadgodzinki;
 
 import android.app.Application;
 import android.os.AsyncTask;
-import android.widget.Toast;
 
 import androidx.lifecycle.LiveData;
 
@@ -20,14 +19,14 @@ public class Repository
 
     Repository(Application application)
     {
-        /** inicjalizujemy obiekt bazy danych ()tworzymy bazę danych*/
+        /* inicjalizujemy obiekt bazy danych ()tworzymy bazę danych*/
         BazaDanych db = BazaDanych.getDatabase(application);
 
-        /** przypisujemy do wywoływań bazę danych */
+        /* przypisujemy do wywoływań bazę danych */
         tabelaDao = db.tabelaDao();
 
-        /** pobieramy z bazy danych wszystkie itemy jakie tylko tam są */
-        allItems = tabelaDao.selectAllItems();
+        /* pobieramy z bazy danych wszystkie itemy jakie tylko tam są */
+        allItems = tabelaDao.loadAllItems();
     }
 
 
@@ -53,6 +52,45 @@ public class Repository
         new insertAsyncTask(tabelaDao).execute(item);
     }
 
+    private static class insertAsyncTask extends AsyncTask<Item, Void, Void>
+    {
+        private TabelaDao mAsyncTaskDao;
+        insertAsyncTask(TabelaDao dao)
+        {
+            mAsyncTaskDao = dao;
+        }
+
+        /** używając następnie tego dao wykonujemy operację dodania elementu
+         * ale robimy to asynchronicznie!!! */
+        @Override
+        protected Void doInBackground(final Item... items)
+        {
+            mAsyncTaskDao.insert(items[0]);
+            return null;
+        }
+    }
+
+    public void delete(Item item)
+    {
+        new deleteAsyncTask(tabelaDao).execute(item);
+    }
+
+    private static class deleteAsyncTask extends AsyncTask<Item, Void, Void>
+    {
+        private TabelaDao mAsyncTaskDao;
+
+        private deleteAsyncTask(TabelaDao dao)
+        {
+            mAsyncTaskDao = dao;
+        }
+
+        @Override
+        protected Void doInBackground(Item... items)
+        {
+            //mAsyncTaskDao.deleteItem(items[0]);
+            return null;
+        }
+    }
 
     /**
      * metoda
@@ -71,30 +109,6 @@ public class Repository
         }
     }
 
-    public void mergeDatabaseWithBuckupFile(List<Item> items)
-    {
-        new updateDatabaseAsyncTask(tabelaDao).execute(items);
-    }
-
-
-    private static class insertAsyncTask extends AsyncTask<Item, Void, Void>
-    {
-        private TabelaDao mAsyncTaskDao;
-        insertAsyncTask(TabelaDao dao)
-        {
-            mAsyncTaskDao = dao;
-        }
-
-        /** używając następnie tego dao wykonujemy operację dodania elementu
-         * ale robimy to asynchronicznie!!! */
-        @Override
-        protected Void doInBackground(final Item... params)
-        {
-            mAsyncTaskDao.insert(params[0]);
-            return null;
-        }
-    }
-
     private static class clearDatabaseAsyncTask extends AsyncTask<Void, Void, Integer>
     {
         private TabelaDao mAsyncTaskDao;
@@ -103,12 +117,20 @@ public class Repository
             mAsyncTaskDao = dao;
         }
 
-        // używając następnie tego dao wykonujemy operację dodania elementu ale robimy to asynchronicznie!!!
         @Override
         protected Integer doInBackground(final Void... b)
         {
             return mAsyncTaskDao.clearDatabase();
         }
+    }
+
+    /**
+     *
+     * @param items
+     */
+    public void mergeDatabaseWithBuckupFile(List<Item> items)
+    {
+        new updateDatabaseAsyncTask(tabelaDao).execute(items);
     }
 
     private static class updateDatabaseAsyncTask extends AsyncTask<List<Item>, Void, Void>

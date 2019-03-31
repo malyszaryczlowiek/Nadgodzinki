@@ -10,26 +10,30 @@ import androidx.room.RoomDatabase;
  * klasa BazaDanych jest holderem i to ona zapewnia bezpośredni dostęp do danych w bazie
  * danych.
  */
-@Database(entities = Item.class, version = 1)
+@Database(entities = Item.class, version = 4)// entities mogą być też w postaci entities = {User.class}
+// jeśli mmay więcej niż jedną tabelę w bazie dancych
 public abstract class BazaDanych extends RoomDatabase
 {
     public abstract TabelaDao tabelaDao();
 
     public static volatile BazaDanych INSTANCE;
 
-    // tworzymy jeszcze singletone tak aby nie można było
+    // tworzymy jeszcze SINGLETONE tak aby nie można było
     // utworzyć kilku egzemplarzy tego samego obiektu
     public static BazaDanych getDatabase(final Context context)
     {
         if (INSTANCE == null)
         {
-            /** wywołujemy w innym wątku niż ma to miejsce w wątku activity*/
+            /* wywołujemy w innym wątku niż ma to miejsce w wątku activity*/
             synchronized (BazaDanych.class)
             {
                 if (INSTANCE == null)
                 {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                             BazaDanych.class, "Baza_Danych")//addCallback(sRoomDatabaseCallback).
+                            .fallbackToDestructiveMigration()// jeśli zmieniamy wersję bazy danych to
+                            //.fallbackToDestructiveMigrationOnDowngrade()
+                            // nie chcemy ich przenosić do nowej tylko tworzymy nową tzn. nie ma migracji
                             .build(); // baza danych to nazwa pliku
                 }
             }

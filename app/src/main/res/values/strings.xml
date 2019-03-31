@@ -18,11 +18,11 @@
     <string name="buckup_options">Buckup options</string>
     <string name="buckup_frequency">Buckup Frequency</string>
     <string name="settings_buckup_switch_summary">Enable or disable Buckups</string>
-    <string name="settings_buckup_email">Email adress to buckups</string>
-    <string name="buckup_email_address">Buckup email adress</string>
-    <string name="enter_your_buckup_email">Enter your email adress</string>
+    <string name="settings_buckup_email">Email address to buckups</string>
+    <string name="buckup_email_address">Buckup email address</string>
+    <string name="enter_your_buckup_email">Enter your email address</string>
     <string name="operation_saved">Changes saved</string>
-    <string name="set_buckup_email">Set buckup email adress</string>
+    <string name="set_buckup_email">Set buckup email address</string>
     <string name="cancel">Cancel</string>
     <string name="set">Set</string>
     <string name="buckup_email_address_changed">Buckup email address changed</string>
@@ -58,4 +58,14 @@
     <string name="choose_buckup_period">Choose Buckup period</string>
     <string name="choose_notification_day">Choose notification day</string>
     <string name="buckup_day">Day of Buckup</string>
+    <string name="test">Test</string>
+    <string name="recycle_view_expand_button_content_desctiption">Show note</string>
+    <string name="note">Note</string>
+    <string name="date">Date</string>
+    <string name="Foo">Foo</string>
+    <string name="delete_this_overtime">Delete this overtime</string>
+    <string name="ask_about_note">Ask about note</string>
+    <string name="add_note_question">Add a note?</string>
+    <string name="no_add">No add</string>
+    <string name="dont_show_this_dialog_again">Do not show this dialog again</string>
 </resources>

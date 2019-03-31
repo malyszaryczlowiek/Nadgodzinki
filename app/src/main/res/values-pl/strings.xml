@@ -58,4 +58,14 @@
     <string name="choose_buckup_period">Wybierz częstotliwość powiadomień</string>
     <string name="choose_notification_day">Wybierz dzień powiadomień</string>
     <string name="buckup_day">Dzień powiadomień</string>
+    <string name="test">Test</string>
+    <string name="recycle_view_expand_button_content_desctiption">Pokaż notatkę</string>
+    <string name="note">Notatka</string>
+    <string name="date">Data</string>
+    <string name="Foo">Foo</string>
+    <string name="delete_this_overtime">Usuń tę nadgodzinę</string>
+    <string name="ask_about_note">Pytaj o notatkę</string>
+    <string name="add_note_question">Dodać notatkę?</string>
+    <string name="no_add">Nie dodawaj</string>
+    <string name="dont_show_this_dialog_again">Nie pokazuj tego okna ponownie</string>
 </resources>

@@ -60,6 +60,12 @@ public class BuckUpFile
                 dateOfAddition.appendChild(dateOfAdditionText);
                 item.appendChild(dateOfAddition);
 
+                Element dayOfWeek = doc.createElement("DayOfWeek");
+                String day = Integer.toString(i.getDayOfWeek());
+                Text dayOfWeekText = doc.createTextNode(day);
+                dayOfWeek.appendChild(dayOfWeekText);
+                item.appendChild(dayOfWeek);
+
                 Element dateOfOvertime = doc.createElement("DateOfOvertime");
                 Text dateOfOvertimeText = doc.createTextNode(i.getDateOfOvertime());
                 dateOfOvertime.appendChild(dateOfOvertimeText);
@@ -76,6 +82,11 @@ public class BuckUpFile
                 Text minutes = doc.createTextNode(minutyString);
                 minuty.appendChild(minutes);
                 item.appendChild(minuty);
+
+                Element note = doc.createElement("Note");
+                Text noteText = doc.createTextNode(i.getNote());
+                note.appendChild(noteText);
+                item.appendChild(note);
 
                 rootelement.appendChild(item);
             }

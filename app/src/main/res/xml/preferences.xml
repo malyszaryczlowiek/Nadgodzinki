@@ -5,44 +5,53 @@
     <PreferenceCategory app:title="@string/buckup_options">
 
         <EditTextPreference
-            android:dialogTitle="@string/buckup_email_address"
             android:dialogMessage="@string/enter_your_buckup_email"
-            android:title="@string/settings_buckup_email"
+            android:dialogTitle="@string/buckup_email_address"
+            android:icon="@android:drawable/ic_dialog_email"
             android:inputType="textEmailAddress"
             android:key="buckup_email"
-            app:useSimpleSummaryProvider="true"
-            />
+            android:title="@string/settings_buckup_email"
+            app:useSimpleSummaryProvider="true" />
 
         <SwitchPreference
             android:defaultValue="true"
             android:editable="true"
+            android:icon="@android:drawable/stat_sys_download"
             android:key="buckup_enabled"
-            android:title="@string/auto_buckup"
             android:summary="@string/settings_buckup_switch_summary"
-            />
+            android:title="@string/auto_buckup" />
 
         <ListPreference
-            android:dialogTitle="@string/choose_buckup_period"
+            android:defaultValue="week"
             android:dependency="buckup_enabled"
-            android:key="buckupList"
-            android:title="@string/buckup_frequency"
+            android:dialogTitle="@string/choose_buckup_period"
             android:entries="@array/buckup_list"
             android:entryValues="@array/buckup_list_values"
-            android:defaultValue="week"
-            app:useSimpleSummaryProvider="true"
-            />
+            android:icon="@android:drawable/ic_lock_idle_alarm"
+            android:key="buckupList"
+            android:title="@string/buckup_frequency"
+            app:useSimpleSummaryProvider="true" />
 
         <ListPreference
-            android:dialogTitle="@string/choose_notification_day"
+            android:defaultValue="6"
             android:dependency="buckup_enabled"
-            android:key="buckupDay"
-            android:title="@string/buckup_day"
+            android:dialogTitle="@string/choose_notification_day"
             android:entries="@array/buckup_list_of_dayweeks"
             android:entryValues="@array/buckup_list_of_dayweeks_values"
-            android:defaultValue="6"
-            app:useSimpleSummaryProvider="true"
-            />
+            android:icon="@android:drawable/ic_menu_week"
+            android:key="buckupDay"
+            android:title="@string/buckup_day"
+            app:useSimpleSummaryProvider="true" />
 
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Inne">
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:icon="@android:drawable/ic_menu_help"
+            android:key="askAboutNote"
+            android:title="@string/ask_about_note" />
     </PreferenceCategory>
 
 </PreferenceScreen>

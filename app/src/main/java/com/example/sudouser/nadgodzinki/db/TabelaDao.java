@@ -21,43 +21,66 @@ import androidx.room.Query;
 @Dao
 public interface TabelaDao
 {
-    // jeśli na przykłąd używamy @Query to jest to o tyle dobrze, że poprawność zapytania jest sprawdzana
-    // już na poziomie kompilacji przez co dostaniemy najwyżej compile error a nie runtime error.
-
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(Item item);
 
-    @Query("SELECT * FROM tabela ORDER BY DateOfOvertime")
-    List<Item> selectAllItemsOrderByDateOfOvertime();
+    @Query("SELECT * FROM tabela ORDER BY DateOfOvertime DESC")
+    LiveData<List<Item>> loadAllItems();
 
-    @Query("SELECT * FROM tabela")
-    LiveData<List<Item>> selectAllItems();
+    //*******************************
+    // Sorting queries
 
-    @Query("SELECT * FROM tabela WHERE Minutes > :minutes")
-    LiveData<List<Item>> loadAllDaysWhereHoursAreBiggerThan(int minutes);
+    ///*
+    @Query("SELECT * FROM tabela WHERE Hours> :hours AND Minutes > :minutes AND DateOfOvertime > :dateOfOvertime ORDER BY DateOfOvertime DESC")
+    LiveData<List<Item>> loadItemsWhereOvertimesAreBiggerThanAndDateIsLaterDesc(int hours, int minutes, String dateOfOvertime);
+
+    @Query("SELECT * FROM tabela WHERE Hours > :hours AND Minutes > :minutes AND DateOfOvertime > :dateOfOvertime ORDER BY DateOfOvertime ASC")
+    LiveData<List<Item>> loadItemsWhereOvertimesAreBiggerThanAndDateDateIsLaterAsc(int hours, int minutes, String dateOfOvertime);
+
+    @Query("SELECT * FROM tabela WHERE Hours > :hours AND Minutes > :minutes AND DateOfOvertime <= :dateOfOvertime ORDER BY DateOfOvertime DESC")
+    LiveData<List<Item>> loadItemsWhereOvertimesAreBiggerThanAndDateIsEarlierDesc(int hours, int minutes, String dateOfOvertime);
+
+    @Query("SELECT * FROM tabela WHERE Hours > :hours AND Minutes > :minutes AND DateOfOvertime <= :dateOfOvertime ORDER BY DateOfOvertime ASC")
+    LiveData<List<Item>> loadItemsWhereOvertimesAreBiggerThanAndDateIsEarlierASC(int hours, int minutes, String dateOfOvertime);
+
+    @Query("SELECT * FROM tabela WHERE Hours < :hours AND Minutes < :minutes AND DateOfOvertime > :dateOfOvertime ORDER BY DateOfOvertime DESC")
+    LiveData<List<Item>> loadItemsWhereOvertimesAreLowerThanAndDateIsLaterDesc(int hours, int minutes, String dateOfOvertime);
+
+    @Query("SELECT * FROM tabela WHERE Hours < :hours AND Minutes < :minutes AND DateOfOvertime > :dateOfOvertime ORDER BY DateOfOvertime ASC")
+    LiveData<List<Item>> loadItemsWhereOvertimesAreLowerThanAndDateIsLaterASC(int hours, int minutes, String dateOfOvertime);
+
+    @Query("SELECT * FROM tabela WHERE Hours < :hours AND Minutes < :minutes AND DateOfOvertime <= :dateOfOvertime ORDER BY DateOfOvertime DESC")
+    LiveData<List<Item>> loadItemsWhereOvertimesAreLowerThanAndDateIsEarlierDesc(int hours, int minutes, String dateOfOvertime);
+
+    @Query("SELECT * FROM tabela WHERE Hours < :hours AND Minutes < :minutes AND DateOfOvertime <= :dateOfOvertime ORDER BY DateOfOvertime ASC")
+    LiveData<List<Item>> loadItemsWhereOvertimesAreLowerThanAndDateIsEarlierASC(int hours, int minutes, String dateOfOvertime);
+     //*/
+
+
+    //*******************
+    // Deleting Queries
 
     @Query("DELETE FROM tabela")
     int clearDatabase();
 
-    //@Query("SELECT * FROM tabela WHERE MAX(uid)")
-    //LiveData<Item> deleteLastItem();
-
-
-
-    /**
-     ponieważ typ zwracany jest jako int to wartość ta odpowiada ilości usuniętych dnaych z bazy danych,
-     podejrzewam, że jeśli będzie zeor to znaczy, że żaden item nie został usunięty.
-     */
     //@Delete
-    //int deleteItem();
+    //void deleteItem(Item item);
 
-    /**
-     * przykład z wykorzystaniem parametrów
-     * załąduj tabelę z gdzie byłem w pracy dłużej niż :minutes minut
+    // TODO zmień ilość minut, godzin i datę.
+    // ***************************
+    // changing Queries
+
+
+    /*
+    @Query("SELECT * FROM tabela  WHERE Minutes > :minutes AND Hours > :hours ORDER BY DateOfOvertime ASC")
+    LiveData<List<Item>> loadItemsWhereOvertimesAreBiggerThanAndDateAsc(int minutes, int hours);
+
+    @Query("SELECT * FROM tabela WHERE Minutes < :minutes AND Hours < :hours ORDER BY DateOfOvertime DESC")
+    LiveData<List<Item>> loadItemsWhereOvertimesAreLowerThanAndDateDesc(int minutes, int hours);
+
+    @Query("SELECT * FROM tabela WHERE Minutes < :minutes AND Hours < :hours ORDER BY DateOfOvertime ASC")
+    LiveData<List<Item>> loadItemsWhereOvertimesAreLowerThanAndDateAsc(int minutes, int hours);
      */
-    //@Query("SELECT * FROM tabela WHERE Minutes > :minutes")
-    //List<Item> loadAllDaysHourBiggerThan(int minutes);
 
     // jeśli zamiast zwykłej List<Item> użyjemy LiveData<List<Item>> to będziemy mogli
     // operując na takiej bazie danych, wprowadzać bezpośrednio w niej zmiany.
@@ -65,9 +88,5 @@ public interface TabelaDao
     // bo puki co ładuje się bez nich. Link do dodania znajduje się poniżej:
     // https://developer.android.com/topic/libraries/architecture/adding-components#lifecycle
     // trzeba to wkleić do w build.gradle (module app) .
-    //@Query("SELECT * FROM tabela WHERE Minutes > :minutes")
-    //LiveData<List<Item>> loadSomething(int minutes);
 }
 
-// TODO pododawać dodatkowe query aby dało się
-// 1. usunąć ostatni wpis

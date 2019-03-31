@@ -25,7 +25,6 @@ public class ItemViewModel extends AndroidViewModel
     private LiveData<List<Item>> allItems;
     private MutableLiveData<LocalDate> localeDataLiveData = new MutableLiveData<>();
 
-
     public ItemViewModel(Application application)
     {
         super(application);
@@ -38,8 +37,6 @@ public class ItemViewModel extends AndroidViewModel
 
     public void insert(Item item)
     {
-        /*  pamiętamy, że to w repozytorium jest zaimplementowana metoda, która insertuje dane
-         * w innym wątku.*/
         mRepository.insert(item);
     }
 
@@ -47,6 +44,12 @@ public class ItemViewModel extends AndroidViewModel
     {
         return mRepository.clearDatabase();
     }
+
+    public void mergeDatabaseWithBuckupFile(@NonNull List<Item> itemsFromBuckUp)
+    {
+        mRepository.mergeDatabaseWithBuckupFile(itemsFromBuckUp);
+    }
+
 
     public void setLocalDate(LocalDate date)
     {
@@ -56,10 +59,5 @@ public class ItemViewModel extends AndroidViewModel
     public LiveData<LocalDate> getLocalDate()
     {
         return localeDataLiveData;
-    }
-
-    public void mergeDatabaseWithBuckupFile(@NonNull List<Item> itemsFromBuckUp)
-    {
-        mRepository.mergeDatabaseWithBuckupFile(itemsFromBuckUp);
     }
 }

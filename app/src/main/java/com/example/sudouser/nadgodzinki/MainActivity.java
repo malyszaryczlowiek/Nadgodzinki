@@ -6,34 +6,51 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.CalendarView;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.Toast;
 
 import com.example.sudouser.nadgodzinki.BuckUp.BuckUpAlarmBroadcastReceiver;
+import com.example.sudouser.nadgodzinki.Dialogs.NoteDialog;
+import com.example.sudouser.nadgodzinki.Settings.ListOfCategoriesActivity;
 import com.example.sudouser.nadgodzinki.db.Item;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.TemporalField;
 import java.util.Calendar;
+import java.util.Locale;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.os.ConfigurationCompat;
 import androidx.lifecycle.*;
 import androidx.preference.PreferenceManager;
 
 
-public class MainActivity extends AppCompatActivity
+public class MainActivity extends AppCompatActivity implements NoteDialog.NoteDialogListener
 {
     private ItemViewModel mItemViewModel;
     private SharedPreferences mSharedPreferences;
+    private SharedPreferences.OnSharedPreferenceChangeListener listener;
     private AlarmManager mAlarm;
     private PendingIntent mPendingIntent;
     private static final int pendingIntentRequestCode = 2;
+
+    // fields necessary to create Item
+    private String dateOfOvertime;
+    private String todayString;
+    int dayOfWeek;
+    int minutesInt;
+    int hoursInt;
 
     /**
      * Jest to pierwsza z metod callback - jest ona wykonywana tylko raz w momencie gdy tworzona jest
@@ -56,34 +73,45 @@ public class MainActivity extends AppCompatActivity
         final CalendarView calendar = findViewById(R.id.mainCalendar);
         calendar.setOnDateChangeListener(new CalendarView.OnDateChangeListener()
         {
-            // powyższego lisetener'a można zapisać w postaci wyrażenia lambda
-            // calendar.setOnDateChangeListener( (@NonNull CalendarView view, int year, int month, int dayOfMonth) ->
-            // mItemViewModel.setLocalDate(LocalDate.of(year, month+1, dayOfMonth)));
             @Override
             public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth)
             {
-                mItemViewModel.setLocalDate(LocalDate.of(year, month+1, dayOfMonth));
-                /*
-                Reports synchronization on a call to getClass(). If the class containing the synchronization is
-                subclassed, the subclass will synchronize on a different class object. Usually the call to getClass()
-                can be replaced with a class literal expression, for example String.class. An even better solution is
-                 synchronizing on a private static final lock object, access to which can be completely controlled.
-                 */
+                mItemViewModel.setLocalDate(LocalDate.of(year, month + 1, dayOfMonth));
             }
         });
         if (mItemViewModel.getLocalDate().getValue() != null)
             calendar.setDate(mItemViewModel.getLocalDate().getValue().toEpochDay() * 24 * 3600 * 1000);
         else
-            mItemViewModel.setLocalDate(LocalDate.ofEpochDay( (calendar.getDate()/(24*3600*1000))));
+            mItemViewModel.setLocalDate(LocalDate.ofEpochDay((calendar.getDate() / (24 * 3600 * 1000))));
 
 
-
-
-        // tutaj będzie wywołany wątek, który zajmie się wygenerowaniem ustawień.
-        // todo działa, ale nie działa bezpośrednio po ustawieniu w ustawieniach tam też trzeba
-        // zaimplementowac mSharedPreferences
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         createAlarmManager();
+        listener = new SharedPreferences.OnSharedPreferenceChangeListener()
+        {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
+            {
+                switch (key)
+                {
+                    case "buckup_enabled": // gdy właczamy bądź wyłączamy alarm
+                        if (sharedPreferences.getBoolean(key, true))
+                            createAlarmManager();
+                        else
+                            cancelAlarm();
+                        break;
+                    case "buckupList": // gdy zmieniamy okres przpomnień tydzień-miesiąc-kwartał TODO zmienić nazwę tej zmiennej na buckupPeriodList
+                        createAlarmManager();
+                        break;
+                    case "buckupDay": // gdy zmieniamy dzień notyfikacji
+                        createAlarmManager();
+                        break;
+                    default:
+                        break;
+                }
+            }
+        };
+        mSharedPreferences.registerOnSharedPreferenceChangeListener(listener);
     }
 
     /**
@@ -105,7 +133,7 @@ public class MainActivity extends AppCompatActivity
                     intervalMillis = (long) 1000 * 3600 * 24 * 7 * 4 ;
                     break;
                 case "quarter":
-                    intervalMillis = (long) 1000 * 3600 * 24 * 7 * 13;
+                    intervalMillis =  (long) 1000 * 3600 * 24 * 7 * 13;
                     break;
                 default:
                     intervalMillis = (long) 1000 * 3600 * 24 * 7;
@@ -116,7 +144,8 @@ public class MainActivity extends AppCompatActivity
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(today);
             calendar.add(Calendar.DAY_OF_WEEK, Math.abs(calendar.get(Calendar.DAY_OF_WEEK) - chosenDay));
-            calendar.add(Calendar.HOUR_OF_DAY, 18);
+            calendar.add(Calendar.HOUR_OF_DAY, 19);
+            calendar.add(Calendar.MINUTE, 11);
 
             mAlarm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
             Intent intent = new Intent(getApplicationContext(), BuckUpAlarmBroadcastReceiver.class);
@@ -135,10 +164,22 @@ public class MainActivity extends AppCompatActivity
             mAlarm.cancel(mPendingIntent);
     }
 
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+    }
 
     @Override
     protected void onDestroy()
     {
+        mSharedPreferences.unregisterOnSharedPreferenceChangeListener(listener);
         super.onDestroy();
     }
 
@@ -159,9 +200,11 @@ public class MainActivity extends AppCompatActivity
             case R.id.menuItemStatistics:
                 showStatistics();
                 return true;
-
             case R.id.menuItemSettings:
                 showSettings();
+                return true;
+            case R.id.menuItemTest:
+                showTest();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -198,6 +241,12 @@ public class MainActivity extends AppCompatActivity
     public void showSettings()
     {
         Intent intent = new Intent(this, SettingsPreferences.class);
+        startActivity(intent);
+    }
+
+    private void showTest()
+    {
+        Intent intent = new Intent(this, ListOfCategoriesActivity.class);
         startActivity(intent);
     }
 
@@ -238,16 +287,28 @@ public class MainActivity extends AppCompatActivity
             return;
         }
 
-        int minutesInt = Integer.parseInt(minutes);
-        int hoursInt = Integer.parseInt(hours);
+        int minutesSigned = Integer.parseInt(minutes);
+        int hoursSigned = Integer.parseInt(hours);
 
         if (!addition)
         {
-            minutesInt = -minutesInt;
-            hoursInt   = -hoursInt;
+            minutesSigned = -minutesSigned;
+            hoursSigned   = -hoursSigned;
         }
 
+        minutesInt = minutesSigned;
+        hoursInt= hoursSigned;
+
         LocalDate today = LocalDate.now();
+        dayOfWeek = date.getDayOfWeek().getValue(); // dzień tygodnia
+        // Todo sprawdzić jaki język jest ustawiony w telefonie i wtedy przypisać odpowiednią
+        // wartość dnia tygodnia z resource. wpisać w string i ten string ewentualnie zostanie
+        // wpisany w konstruktor itemu
+        // Locale locale = ConfigurationCompat.getLocales(Resources.getSystem().getConfiguration()).get(0);
+        // if (locale.getLanguage().equals(new Locale("pl").getLanguage()))
+        //String dayOfWeekString = getResources().getStringArray(R.array.buckup_list_of_dayweeks)[dayOfWeek - 1];
+
+
         boolean datecomparison = date.isAfter(today);
         // isAfter nie może zwrócić nullPointerException, ponieważ w onCreate()
         // do tego intentu mamy sprawdzanie czy mItemViewModel.getLocalDate().getValue() != null
@@ -283,200 +344,53 @@ public class MainActivity extends AppCompatActivity
         }
         else  // to jest w przypadku gdy wszystko jest w porządku
         {
-            String dateOfOvertime = date.toString();
-            String todayString = today.toString();
-            mItemViewModel.insert(new Item(0, todayString, dateOfOvertime, hoursInt, minutesInt));
-            Toast.makeText(this, getText(R.string.operation_saved), Toast.LENGTH_SHORT).show();
-        }
-    }
-}
+            dateOfOvertime = date.toString();
+            todayString = today.toString();
 
-// SOME NOTES :D
-
-/*
-#### Założnia co do notyfikacji
-jeśli uruchamia się mainIntent to sprawdzamy, czy jest wystartowany service? uruchamiający notyfikację,
-    Tak: jeśli jest uruchomiony to nie wchodzimy do wnętrza if()
-    Nie: jeśli service nie jest uruchomiony to sprawdzamy czy w ustawieniach mamy go uruchomić
-        Tak: uruchamiamy serwis z notyfikacjami co zadaną w ustawieniach wartość czasu
-        Nie: nie uruchamiamy serwisu, czyli użytkownik będzie robił buckupy' manualnie
- */
-
-
-
-/*
-// z metody onCreate(View view)
-        // przykład z
-        // https://codelabs.developers.google.com/codelabs/android-training-alarm-manager/index.html?index=..%2F..android-training#3
-        //mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        //createNotificationChannel();
-        //deliverNotification(this);
-
-        if (mSharedPreferences.getBoolean("buckup_enabled", true))
-        {
-            Intent notifyIntent = new Intent(this, BroRec.class);
-            mPendingIntent = PendingIntent.getBroadcast
-                    (this, notificationId, notifyIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            mAlarm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-            //mPendingIntent = PendingIntent.getBroadcast(this, 0, notifyIntent, 0);
-            mAlarm.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                    System.currentTimeMillis() + 10 * 1000, 10 * 1000, mPendingIntent);
-        }
-        else
-        {
-            if (mAlarm != null)
-                mAlarm.cancel(mPendingIntent);
-        }
-         */
-
-
-    /*
-    private void deliverNotification(Context context)
-    {
-        Intent intent = new Intent(context, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, notificationId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        // flagi mówią tutaj sstemowi jak ma traktować ten intent gdy pojawi on się ponownie,
-        // wy wtym przypadku intent ma być ten sam tylko etras mają zostać zmienione na nowe
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.notification_icon)
-                .setContentTitle("content title")
-                .setContentText("content text")
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText("tu jest text który pojawi się " +
-                        "gdy notyfikacja jest expandible. tzn pociągając w dół pojawiają się dodadtkowe" +
-                        " linie textu."))
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                // Set the intent that will fire when the user taps the notification
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true); // to automatycznie usówa notyfikacje gdy urzytkownik na nią klilknie
-        mNotificationManager.notify(notificationId, builder.build());
-    }
-    private void createNotificationChannel()
-    {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-        {
-            NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID,
-                    "nazwa notyfikacji",
-                    NotificationManager.IMPORTANCE_DEFAULT);
-            notificationChannel.enableLights(true);
-            notificationChannel.setLightColor(Color.RED);
-            notificationChannel.enableVibration(true);
-            notificationChannel.setDescription
-                    ("Notifies every 15 minutes to stand up and walk");
-            mNotificationManager.createNotificationChannel(notificationChannel);
-        }
-    }
-    */
-
-    /* // wycięty fragment manifestu
-        <receiver
-            android:name=".BuckUp.BootCompletedBroadcastReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name=".BuckUp.BuckUpAlarmBroadcastReceiver"
-            android:enabled="true"
-            android:exported="true">
-        </receiver>
-        <receiver
-            android:name=".BuckUp.BroRec"
-            android:enabled="true"
-            android:exported="false"></receiver>
-         */
-
-
-        /*
-        //działa tylko jak intent jest jawny
-        Intent sampleIntent = new Intent(this, SampleReceiver.class); // to działa bo intent jest explicit
-        //Intent sampleIntent = new Intent();
-        sampleIntent.setAction("com.example.sudouser.nadgodzinki.BuckUp.SampleReceiver");
-        sendBroadcast(sampleIntent);
-
-        //ponieważ powyższy intent jest niejawny (nie zawiera informacji o kalsie w swoim konstuktorze)
-        // to musimy zdefiniować context receiver (ale ten jest ważny tylko dopóki istnieje ten context)
-        BroadcastReceiver br = new SampleReceiver();
-        IntentFilter filter = new IntentFilter(); // można też od razu new IntentFilter("com.example.sudouser.nadgodzinki.BuckUp.SampleReceiver") bo argumentem jest string action;
-        filter.addAction("com.example.sudouser.nadgodzinki.BuckUp.SampleReceiver");
-        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
-        lbm.registerReceiver(br, filter);
-         */
-// i na koniec kasujemy z manifestu info o tym że jest SampleReceiver
-        /*
-        <receiver
-            android:name=".BuckUp.SampleReceiver">
-            <intent-filter>
-                <action android:name="com.example.sudouser.nadgodzinki.BuckUp.SampleReceiver" />
-            </intent-filter>
-        </receiver>
-         */
-
-
-/*
-// treść sample receivera:
-package com.example.sudouser.nadgodzinki.BuckUp;
-
-
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-
-
-public class SampleReceiver extends BroadcastReceiver
-{
-    @Override
-    public void onReceive(Context context, Intent intentFromAlarm)
-    {
-        int i = 0;
-    }
-}
-
-
-        //ponieważ powyższy intent jest niejawny (nie zawiera informacji o klasie w swoim konstuktorze)
-        // to musimy zdefiniować context receiver (ale ten jest ważny tylko dopóki istnieje ten context)
-        BroadcastReceiver br = new SampleReceiver();
-        IntentFilter filter = new IntentFilter(); // można też od razu new IntentFilter("com.example.sudouser.nadgodzinki.BuckUp.SampleReceiver") bo argumentem jest string action;
-        filter.addAction("com.example.sudouser.nadgodzinki.BuckUp.SampleReceiver");
-        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
-        lbm.registerReceiver(br, filter);
-        // this.unregisterReceiver(br); // trzeba go jeszcze skasować na koniec
-
-        Intent sampleIntent = new Intent(this, SampleReceiver.class); // to działa manifest receiver'em bo intent jest explicit, ale nie działa z
-        //Intent sampleIntent = new Intent();
-        sampleIntent.setAction("com.example.sudouser.nadgodzinki.BuckUp.SampleReceiver");
-        lbm.sendBroadcast(sampleIntent);
-         */
-
-
-
-
-/*
-//  tutaj treba wstawić jeszcze listenera, który będzie sparawdzał czy jak się zmieną
-        // ustawinia to czy należy wywoła mAlarm.cancel() aby anulować alarm
-        listener = new SharedPreferences.OnSharedPreferenceChangeListener()
-        {
-            @Override
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
+            if (mSharedPreferences.getBoolean("askAboutNote", true)) //prośba o dodanie notatki
             {
-                switch (key)
-                {
-                    case "buckup_enabled":
-                        if (sharedPreferences.getBoolean(key, true))
-                            createAlarmManager();
-                        else
-                            cancelAlarm();
-                        break;
-                    case "buckupList":
-                        break;
-                    default:
-                        break;
-                }
+                NoteDialog noteDialog = new NoteDialog();
+                noteDialog.show(getSupportFragmentManager(),"note tag");
             }
-        };
- */
+            else
+            {
+                mItemViewModel.insert(new Item(0, todayString, dayOfWeek, dateOfOvertime, hoursInt, minutesInt, ""));
+                Toast.makeText(this, getText(R.string.operation_saved), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+
+    @Override
+    public void applyChanges(String note, boolean show)
+    {
+        mSharedPreferences.edit().putBoolean("askAboutNote", !show).apply(); //zaprzeczamy, że chemy pokazywać ponownie to okno
+        mItemViewModel.insert(new Item(0, todayString, dayOfWeek, dateOfOvertime, hoursInt, minutesInt, note));
+        Toast.makeText(this, getText(R.string.operation_saved), Toast.LENGTH_SHORT).show();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

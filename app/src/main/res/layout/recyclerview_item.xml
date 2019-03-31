@@ -1,12 +1,136 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainRecycleView"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/textView"
-        style="@style/OvertimeDate"
-        android:layout_height="match_parent"
-        android:background="@android:color/holo_orange_light" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/dayRecycleView"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:textAlignment="center"
+            android:textAllCaps="false"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/dateRecycleView"
+            app:layout_constraintHorizontal_chainStyle="spread_inside"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/dateRecycleView"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:ems="10"
+            android:hint="@string/date"
+            android:importantForAutofill="no"
+            android:textAlignment="center"
+            android:textSize="18sp"
+            app:layout_constraintBaseline_toBaselineOf="@+id/hoursRecycleView"
+            app:layout_constraintEnd_toStartOf="@+id/hoursRecycleView"
+            app:layout_constraintStart_toEndOf="@+id/dayRecycleView" />
+
+        <ImageButton
+            android:id="@+id/imageButtonRecycleView"
+            android:layout_width="40dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="8dp"
+            android:contentDescription="@string/recycle_view_expand_button_content_desctiption"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/minutesRecycleView"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@android:drawable/arrow_down_float" />
+
+        <EditText
+            android:id="@+id/minutesRecycleView"
+            android:layout_width="37dp"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="@string/zerozero"
+            android:importantForAutofill="no"
+            android:inputType="numberSigned"
+            android:textAlignment="center"
+            android:textColorLink="@color/colorAccent"
+            android:textSize="18sp"
+            app:layout_constraintBaseline_toBaselineOf="@+id/colonRecycleView"
+            app:layout_constraintEnd_toStartOf="@+id/imageButtonRecycleView"
+            app:layout_constraintStart_toEndOf="@+id/colonRecycleView" />
+
+        <EditText
+            android:id="@+id/hoursRecycleView"
+            android:layout_width="25dp"
+            android:layout_height="wrap_content"
+            android:importantForAutofill="no"
+            android:ems="10"
+            android:hint="@string/zero"
+            android:inputType="numberSigned"
+            android:textAlignment="center"
+            android:textColorLink="@color/colorAccent"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toBottomOf="@+id/imageButtonRecycleView"
+            app:layout_constraintEnd_toStartOf="@+id/colonRecycleView"
+            app:layout_constraintStart_toEndOf="@+id/dateRecycleView" />
+
+        <TextView
+            android:id="@+id/colonRecycleView"
+            android:layout_width="8dp"
+            android:layout_height="33dp"
+            android:text="@string/colon"
+            android:textAlignment="center"
+            android:textSize="18sp"
+            app:layout_constraintBaseline_toBaselineOf="@+id/hoursRecycleView"
+            app:layout_constraintEnd_toStartOf="@+id/minutesRecycleView"
+            app:layout_constraintStart_toEndOf="@+id/hoursRecycleView" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/noteAndDeleteButtonLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/dateRecycleView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/dayRecycleView">
+
+        <Button
+            android:id="@+id/deleteItemButtonRecycleView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:elevation="0dp"
+            android:text="@string/delete_this_overtime"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/notesAboutOvertime" />
+
+        <EditText
+            android:id="@+id/notesAboutOvertime"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:ems="10"
+            android:hint="@string/note"
+            android:importantForAutofill="no"
+            android:inputType="textMultiLine"
+            android:textSize="18sp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </LinearLayout>

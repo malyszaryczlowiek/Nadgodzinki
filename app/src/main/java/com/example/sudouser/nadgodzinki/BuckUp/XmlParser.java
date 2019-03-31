@@ -50,9 +50,11 @@ public class XmlParser
                         // musimy wyitemować elementy z każdego pojedyńczego itemu
                         String id = "";
                         String dateOfAddition = "";
+                        String dayOfWeek = "";
                         String dateOfOvertime = "";
                         String hours = "";
                         String minutes = "";
+                        String note = "";
                         // jesteśmy teraz w itemie i iterujemy po kolei każdy node
                         for (int j = 0; j < listOFItemsElements.getLength(); ++j)
                         {
@@ -74,6 +76,9 @@ public class XmlParser
                                     case "DateOfAddition":
                                         dateOfAddition = value;
                                         break;
+                                    case "DayOfWeek":
+                                        dayOfWeek = value;
+                                        break;
                                     case "DateOfOvertime":
                                         dateOfOvertime = value;
                                         break;
@@ -83,13 +88,15 @@ public class XmlParser
                                     case "Minutes":
                                         minutes = value;
                                         break;
+                                    case "Note":
+                                        note = value;
                                     default:
                                         break;
                                 }
                             }
                         }
                         //   if (dateOfAddition != null && dateOfOvertime != null && hours != null && minutes != null)
-                        Item overhour = new Item(Integer.parseInt(id), dateOfAddition, dateOfOvertime, Integer.parseInt(hours), Integer.valueOf(minutes));
+                        Item overhour = new Item(Integer.parseInt(id), dateOfAddition, Integer.parseInt(dayOfWeek), dateOfOvertime, Integer.parseInt(hours), Integer.parseInt(minutes), note);
                         list.add(overhour);
 
                         // zrobić tak, żeby uzyskaną listę element po elemencie dodawać do bazy danych sprawdzając czy dany element już w niej jest

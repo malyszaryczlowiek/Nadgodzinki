@@ -45,7 +45,7 @@ public class BuckUpAlarmBroadcastReceiver extends BroadcastReceiver
                 .setStyle(new NotificationCompat
                         .BigTextStyle()
                         .bigText(context.getText(R.string.buckup_notification_text_big)))
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 // Set the intent that will fire when the user taps the notification
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true); // to automatycznie usówa notyfikacje gdy urzytkownik na nią klilknie
