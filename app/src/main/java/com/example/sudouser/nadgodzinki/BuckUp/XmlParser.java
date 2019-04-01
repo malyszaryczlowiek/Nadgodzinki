@@ -89,7 +89,10 @@ public class XmlParser
                                         minutes = value;
                                         break;
                                     case "Note":
-                                        note = value;
+                                        if (value.equals("no_note"))
+                                            note = "";
+                                        else
+                                            note = value;
                                     default:
                                         break;
                                 }
@@ -98,9 +101,6 @@ public class XmlParser
                         //   if (dateOfAddition != null && dateOfOvertime != null && hours != null && minutes != null)
                         Item overhour = new Item(Integer.parseInt(id), dateOfAddition, Integer.parseInt(dayOfWeek), dateOfOvertime, Integer.parseInt(hours), Integer.parseInt(minutes), note);
                         list.add(overhour);
-
-                        // zrobić tak, żeby uzyskaną listę element po elemencie dodawać do bazy danych sprawdzając czy dany element już w niej jest
-                        // jeśli jest to niech nie będzie dodawany jeśli nie ma to dodoać go.
                     }
                 }
             }

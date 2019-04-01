@@ -20,7 +20,7 @@ import androidx.appcompat.app.AppCompatDialogFragment;
  */
 public class NoteDialog extends AppCompatDialogFragment
 {
-    private EditText noteEditText;// noteDialogEditText
+    private EditText noteEditText;
     private RadioButton showAgainButton;
     private NoteDialogListener listener;
 

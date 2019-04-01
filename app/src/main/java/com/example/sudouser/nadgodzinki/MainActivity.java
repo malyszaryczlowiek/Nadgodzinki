@@ -6,15 +6,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.CalendarView;
 import android.widget.EditText;
-import android.widget.RadioButton;
 import android.widget.Toast;
 
 import com.example.sudouser.nadgodzinki.BuckUp.BuckUpAlarmBroadcastReceiver;
@@ -22,16 +19,12 @@ import com.example.sudouser.nadgodzinki.Dialogs.NoteDialog;
 import com.example.sudouser.nadgodzinki.Settings.ListOfCategoriesActivity;
 import com.example.sudouser.nadgodzinki.db.Item;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.temporal.TemporalField;
 import java.util.Calendar;
-import java.util.Locale;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.os.ConfigurationCompat;
 import androidx.lifecycle.*;
 import androidx.preference.PreferenceManager;
 
@@ -197,8 +190,8 @@ public class MainActivity extends AppCompatActivity implements NoteDialog.NoteDi
     {
         switch(item.getItemId())
         {
-            case R.id.menuItemStatistics:
-                showStatistics();
+            case R.id.menuItemListOfOvertimes:
+                showListOfOvertimes();
                 return true;
             case R.id.menuItemSettings:
                 showSettings();
@@ -232,9 +225,9 @@ public class MainActivity extends AppCompatActivity implements NoteDialog.NoteDi
         insertTimeChecker(false);
     }
 
-    public void showStatistics()
+    public void showListOfOvertimes()
     {
-        Intent intent = new Intent(this, StatsInfoActivity.class).putExtra("fromNotifier", false);
+        Intent intent = new Intent(this, ListOfOvertimesActivity.class).putExtra("fromNotifier", false);
         startActivity(intent);
     }
 
@@ -301,14 +294,6 @@ public class MainActivity extends AppCompatActivity implements NoteDialog.NoteDi
 
         LocalDate today = LocalDate.now();
         dayOfWeek = date.getDayOfWeek().getValue(); // dzień tygodnia
-        // Todo sprawdzić jaki język jest ustawiony w telefonie i wtedy przypisać odpowiednią
-        // wartość dnia tygodnia z resource. wpisać w string i ten string ewentualnie zostanie
-        // wpisany w konstruktor itemu
-        // Locale locale = ConfigurationCompat.getLocales(Resources.getSystem().getConfiguration()).get(0);
-        // if (locale.getLanguage().equals(new Locale("pl").getLanguage()))
-        //String dayOfWeekString = getResources().getStringArray(R.array.buckup_list_of_dayweeks)[dayOfWeek - 1];
-
-
         boolean datecomparison = date.isAfter(today);
         // isAfter nie może zwrócić nullPointerException, ponieważ w onCreate()
         // do tego intentu mamy sprawdzanie czy mItemViewModel.getLocalDate().getValue() != null
@@ -350,7 +335,7 @@ public class MainActivity extends AppCompatActivity implements NoteDialog.NoteDi
             if (mSharedPreferences.getBoolean("askAboutNote", true)) //prośba o dodanie notatki
             {
                 NoteDialog noteDialog = new NoteDialog();
-                noteDialog.show(getSupportFragmentManager(),"note tag");
+                noteDialog.show(getSupportFragmentManager(),"note_tag");
             }
             else
             {

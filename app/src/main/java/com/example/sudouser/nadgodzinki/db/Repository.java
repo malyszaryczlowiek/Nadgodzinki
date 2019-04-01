@@ -1,4 +1,4 @@
-package com.example.sudouser.nadgodzinki;
+package com.example.sudouser.nadgodzinki.db;
 
 import android.app.Application;
 import android.os.AsyncTask;
@@ -8,16 +8,18 @@ import androidx.lifecycle.LiveData;
 import com.example.sudouser.nadgodzinki.db.BazaDanych;
 import com.example.sudouser.nadgodzinki.db.Item;
 import com.example.sudouser.nadgodzinki.db.TabelaDao;
+import com.google.android.material.tabs.TabLayout;
 
 import java.util.List;
 
 public class Repository
 {
+
     // obiekt TabelaDao tak jak w klasie BazaDanych.
     private TabelaDao tabelaDao;
     private LiveData<List<Item>> allItems;
 
-    Repository(Application application)
+    public Repository(Application application)
     {
         /* inicjalizujemy obiekt bazy danych ()tworzymy bazę danych*/
         BazaDanych db = BazaDanych.getDatabase(application);
@@ -87,7 +89,7 @@ public class Repository
         @Override
         protected Void doInBackground(Item... items)
         {
-            //mAsyncTaskDao.deleteItem(items[0]);
+            mAsyncTaskDao.deleteItem(items[0]);
             return null;
         }
     }
@@ -151,7 +153,89 @@ public class Repository
             return null;
         }
     }
+
+    public void updateDayOfOvertime(String dayOfOvertime, int day, int id)
+    {
+        new updateDateOfOvertimeAsyncTask(tabelaDao, day, id).execute(dayOfOvertime);
+    }
+
+    private static class updateDateOfOvertimeAsyncTask extends AsyncTask<String, Void, Void>
+    {
+        private TabelaDao tabelaDao;
+        private int id;
+        private int day;
+
+        updateDateOfOvertimeAsyncTask(TabelaDao tab, int day, int id)
+        {
+            tabelaDao = tab;
+            this.day = day;
+            this.id = id;
+        }
+
+        @Override
+        protected Void doInBackground(String... strings)
+        {
+            tabelaDao.updateDateOfOvertime(strings[0], day, id);
+            return null;
+        }
+    }
+
+    public void updateNumberOfMinutesAndHours(int hours, int minutes, int id)
+    {
+        new updateNumberOfMinutesAndHoursAsyncTask(tabelaDao).execute(hours, minutes, id);
+    }
+
+    private static class updateNumberOfMinutesAndHoursAsyncTask extends AsyncTask<Integer, Void, Void>
+    {
+        TabelaDao tabelaDao;
+
+        updateNumberOfMinutesAndHoursAsyncTask(TabelaDao tabela)
+        {
+            tabelaDao = tabela;
+        }
+
+        @Override
+        protected Void doInBackground(Integer... integers)
+        {
+            tabelaDao.updateNumberOfMinutesAndHours(integers[0],integers[1],integers[2]);
+            return null;
+        }
+    }
+
+    public void updateNote(String note, int id)
+    {
+        new updateNoteAsyncTask(tabelaDao, id).execute(note);
+    }
+
+    private static class updateNoteAsyncTask extends AsyncTask<String, Void , Void>
+    {
+        private TabelaDao tabelaDao;
+        private int id;
+
+        updateNoteAsyncTask(TabelaDao tabela, int id)
+        {
+            tabelaDao = tabela;
+            this.id = id;
+        }
+
+        @Override
+        protected Void doInBackground(String... notes)
+        {
+            tabelaDao.updateNote(notes[0], id);
+            return null;
+        }
+    }
 }
+
+
+
+
+
+
+
+
+
+
 
 
 

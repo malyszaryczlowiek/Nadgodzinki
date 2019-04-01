@@ -37,13 +37,14 @@ import com.example.sudouser.nadgodzinki.db.Item;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 // implementuje ActivityCompat.OnRequestPermissionsResultCallback bo używamy intentu, który ma zwracać jakiś resultat
-public class StatsInfoActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback
+public class ListOfOvertimesActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, ItemListAdapter.ItemListAdapterListener
 {
     private ItemViewModel mItemViewModel;
     private SharedPreferences sharedPreferences;
@@ -65,7 +66,7 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
         mItemViewModel.getAllItems().observe(this, items -> listOfItems = items );
 
         RecyclerView recyclerView = findViewById(R.id.allItemsTable);
-        final ItemListAdapter adapter = new ItemListAdapter(this, mItemViewModel); // TODO uwaga na znacznik final, może chyba powodować kłopoty
+        final ItemListAdapter adapter = new ItemListAdapter(this); // TODO uwaga na znacznik final, może chyba powodować kłopoty
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -198,7 +199,6 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
                                     }
                                 });
                         builder.show();
-
                     }
                 }
                 else
@@ -356,7 +356,7 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
         String email = sharedPreferences.getString("buckup_email","");
         if (email.equals("")) // Todo też do weryfikacji dlaczego może dawac nullPointerException
         {
-            LayoutInflater layoutInflater = LayoutInflater.from(StatsInfoActivity.this);
+            LayoutInflater layoutInflater = LayoutInflater.from(ListOfOvertimesActivity.this);
             View promptUserView = layoutInflater.inflate(R.layout.email_dialog, null);
             final EditText userAnswer = (EditText) promptUserView.findViewById(R.id.email_editText_dialog);
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -488,6 +488,68 @@ public class StatsInfoActivity extends AppCompatActivity implements ActivityComp
                     }
                 });
         builder.show();
+    }
+
+    /*
+    *************************************************************************
+    METODY UżYWANE DO WYKONANIA ZMIAN JAKIE ZOSTAŁY WPROWADZONE W RECYCLEVIEW
+    *************************************************************************
+    */
+    // korzystamy tutaj z interfejsu utworzonego dla klasy ItemListAdapter
+
+
+    @Override
+    public void deleteItem(Item item)
+    {
+        mItemViewModel.deleteItem(item);
+    }
+
+    @Override
+    public void changeDateOfOvertime(int chosenYear, int chosenMonth, int chosenDayOfWeek, int id)
+    {
+        //
+        LocalDate date = LocalDate.of(chosenYear, chosenMonth, chosenDayOfWeek);
+        LocalDate today = LocalDate.now();
+
+        if (!date.isAfter(today))
+        {
+            // chosenMonth musi być od 1-12
+            int dayOfWeek = date.getDayOfWeek().getValue();
+            mItemViewModel.updateDateOfOvertime(date.toString(), dayOfWeek, id);
+        }
+        else
+        {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.incorrect_date)
+                    .setMessage(R.string.cannot_setup_future_date)
+                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener()
+                    {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which)
+                        {
+
+                        }
+                    })
+                    .show();
+        }
+    }
+
+    /**
+     * metoda wywoływana gdy użytkownik będzie chciał zminić liczbę godzin lub minut
+     * @param hours
+     * @param minutes
+     * @param id
+     */
+    @Override
+    public void changeNumberOfMinutesAndHours(int hours, int minutes, int id)
+    {
+        mItemViewModel.updateNumberOfMinutesAndHours(hours, minutes, id);
+    }
+
+    @Override
+    public void saveNote(String note, int id)
+    {
+        mItemViewModel.updateNote(note, id);
     }
 }
 

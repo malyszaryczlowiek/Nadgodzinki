@@ -105,7 +105,7 @@ public class Item
         this.dateOfOvertime     = dateOfOvertime;
         this.numberOfHours      = numberOfHours;
         this.numberOfMinutes    = numberOfMinutes;
-        this.note               = note;
+        this.note                = note;
     }
 
     @Override

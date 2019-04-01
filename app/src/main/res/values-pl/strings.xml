@@ -18,7 +18,7 @@
     <string name="buckup_options">Opcje kopii zapasowej</string>
     <string name="buckup_frequency">Częstotliwość wykonywania kopii zapasowych</string>
     <string name="settings_buckup_switch_summary">Aktywuj lub dezaktywuj zapytania o wykonanie kopii zapasowej.</string>
-    <string name="settings_buckup_email">Email na który wysyłana jest kopia zapasowa</string>
+    <string name="settings_buckup_email">Email na którym zapisywana jest kopia zapasowa</string>
     <string name="buckup_email_address">Adres email do zapisu kopii zapasowej na skrzynce pocztowej</string>
     <string name="enter_your_buckup_email">Podaj swój adres email</string>
     <string name="operation_saved">Zapisano zmiany.</string>
@@ -68,4 +68,7 @@
     <string name="add_note_question">Dodać notatkę?</string>
     <string name="no_add">Nie dodawaj</string>
     <string name="dont_show_this_dialog_again">Nie pokazuj tego okna ponownie</string>
+    <string name="set_new_date">Ustaw nową datę</string>
+    <string name="list_of_overtimes">Lista nadgodzin</string>
+    <string name="save_note">Zapisz notatkę</string>
 </resources>

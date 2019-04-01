@@ -3,6 +3,7 @@ package com.example.sudouser.nadgodzinki;
 import android.app.Application;
 
 import com.example.sudouser.nadgodzinki.db.Item;
+import com.example.sudouser.nadgodzinki.db.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -40,6 +41,11 @@ public class ItemViewModel extends AndroidViewModel
         mRepository.insert(item);
     }
 
+    public void deleteItem(Item item)
+    {
+        mRepository.delete(item);
+    }
+
     public int clearDatabase()
     {
         return mRepository.clearDatabase();
@@ -50,6 +56,19 @@ public class ItemViewModel extends AndroidViewModel
         mRepository.mergeDatabaseWithBuckupFile(itemsFromBuckUp);
     }
 
+    public void updateDateOfOvertime(String dayOfWeek, int day, int id)
+    {
+        mRepository.updateDayOfOvertime(dayOfWeek, day, id);
+    }
+
+    public void updateNumberOfMinutesAndHours(int hours, int minutes, int id)
+    {
+        mRepository.updateNumberOfMinutesAndHours(hours, minutes, id);
+    }
+    public void updateNote(String note, int id)
+    {
+        mRepository.updateNote(note, id);
+    }
 
     public void setLocalDate(LocalDate date)
     {

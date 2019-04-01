@@ -3,8 +3,8 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/menuItemStatistics"
-        android:title="@string/statistics" />
+        android:id="@+id/menuItemListOfOvertimes"
+        android:title="@string/list_of_overtimes" />
     <item
         android:id="@+id/menuItemSettings"
         android:title="@string/settings" />

@@ -63,30 +63,27 @@ public interface TabelaDao
     @Query("DELETE FROM tabela")
     int clearDatabase();
 
-    //@Delete
-    //void deleteItem(Item item);
-
-    // TODO zmień ilość minut, godzin i datę.
-    // ***************************
-    // changing Queries
+    @Delete
+    void deleteItem(Item item);
 
 
-    /*
-    @Query("SELECT * FROM tabela  WHERE Minutes > :minutes AND Hours > :hours ORDER BY DateOfOvertime ASC")
-    LiveData<List<Item>> loadItemsWhereOvertimesAreBiggerThanAndDateAsc(int minutes, int hours);
+    //************************
+    // updating queries
 
-    @Query("SELECT * FROM tabela WHERE Minutes < :minutes AND Hours < :hours ORDER BY DateOfOvertime DESC")
-    LiveData<List<Item>> loadItemsWhereOvertimesAreLowerThanAndDateDesc(int minutes, int hours);
+    @Query("UPDATE tabela SET DateOfOvertime = :date, Day = :dayOfWeek WHERE uid = :id")
+    void updateDateOfOvertime(String date, int dayOfWeek, int id);
 
-    @Query("SELECT * FROM tabela WHERE Minutes < :minutes AND Hours < :hours ORDER BY DateOfOvertime ASC")
-    LiveData<List<Item>> loadItemsWhereOvertimesAreLowerThanAndDateAsc(int minutes, int hours);
-     */
+    @Query("UPDATE tabela SET Minutes = :minutes, Hours = :hours WHERE uid = :id")
+    void updateNumberOfMinutesAndHours(int hours, int minutes, int id);
 
-    // jeśli zamiast zwykłej List<Item> użyjemy LiveData<List<Item>> to będziemy mogli
-    // operując na takiej bazie danych, wprowadzać bezpośrednio w niej zmiany.
-    // sprawdzić czy nie będzie trzeba czasami dodać jeszcze: modułów do LiveData<> i ViewModel
-    // bo puki co ładuje się bez nich. Link do dodania znajduje się poniżej:
-    // https://developer.android.com/topic/libraries/architecture/adding-components#lifecycle
-    // trzeba to wkleić do w build.gradle (module app) .
+    @Query("UPDATE tabela SET Note = :note WHERE uid = :id")
+    void updateNote(String note, int id);
 }
 
+
+// jeśli zamiast zwykłej List<Item> użyjemy LiveData<List<Item>> to będziemy mogli
+// operując na takiej bazie danych, wprowadzać bezpośrednio w niej zmiany.
+// sprawdzić czy nie będzie trzeba czasami dodać jeszcze: modułów do LiveData<> i ViewModel
+// bo puki co ładuje się bez nich. Link do dodania znajduje się poniżej:
+// https://developer.android.com/topic/libraries/architecture/adding-components#lifecycle
+// trzeba to wkleić do w build.gradle (module app) .

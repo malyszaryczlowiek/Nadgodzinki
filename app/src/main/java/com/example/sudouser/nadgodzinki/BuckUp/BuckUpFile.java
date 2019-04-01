@@ -84,7 +84,10 @@ public class BuckUpFile
                 item.appendChild(minuty);
 
                 Element note = doc.createElement("Note");
-                Text noteText = doc.createTextNode(i.getNote());
+                String noteToAdd = i.getNote();
+                if (noteToAdd.equals(""))
+                    noteToAdd = "no_note";
+                Text noteText = doc.createTextNode(noteToAdd);
                 note.appendChild(noteText);
                 item.appendChild(note);
 

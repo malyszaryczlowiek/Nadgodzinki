@@ -21,9 +21,9 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".StatsInfoActivity"
+            android:name=".ListOfOvertimesActivity"
             android:parentActivityName=".MainActivity"
-            android:label="@string/statistics"/>
+            android:label="@string/list_of_overtimes"/>
         <activity
             android:name=".SettingsPreferences"
             android:parentActivityName=".MainActivity"

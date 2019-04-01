@@ -6,6 +6,19 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:datePickerDialogTheme">@style/MyDatePickerDialogTheme</item>
+    </style>
+
+
+    <!-- rozwiązanie znalezione w
+    https://stackoverflow.com/questions/28738089/change-datepicker-dialog-color-for-android-5-0 -->
+    <style name="MyDatePickerDialogTheme" parent="android:Theme.Material.Light.Dialog">
+        <item name="android:datePickerStyle">@style/MyDatePickerDialogStyle</item>
+    </style>
+
+    <style name="MyDatePickerDialogStyle" parent="android:Widget.Material.Light.DatePicker">
+        <item name="android:headerBackground">@color/colorPrimary</item>
+        <item name="android:dayOfWeekBackground">@color/colorAccent</item>
     </style>
 
     <style name="OvertimeDate">
