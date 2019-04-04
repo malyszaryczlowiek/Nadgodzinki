@@ -37,6 +37,10 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
     private String[] daysList;
     private ItemListAdapterListener listener;
 
+    private String oldNote;
+    private int oldHoursValue;
+    private int oldMinutesValue;
+
 
 
     class ItemsViewHolder extends RecyclerView.ViewHolder
@@ -50,8 +54,6 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
         private final EditText minutesRecycleView;
         private final EditText hoursRecycleView;
         private final EditText notesAboutOvertime;
-        private final Button saveNoteButton;
-
 
         private ItemsViewHolder(View itemView)
         {
@@ -65,7 +67,6 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
             minutesRecycleView = itemView.findViewById(R.id.minutesRecycleView);
             hoursRecycleView = itemView.findViewById(R.id.hoursRecycleView);
             notesAboutOvertime = itemView.findViewById(R.id.notesAboutOvertime);
-            saveNoteButton = itemView.findViewById(R.id.saveNoteButtonRecycleView);
         }
     }
 
@@ -115,20 +116,20 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
                 switch (holder.hideShowLayout.getVisibility())
                 {
                     case View.GONE:
-                        //holder.notesAboutOvertime.setVisibility(View.VISIBLE);
+                        holder.notesAboutOvertime.setVisibility(View.VISIBLE);
                         holder.imageButtonRecycleView.setImageResource(android.R.drawable.arrow_up_float);
-                        //holder.deleteItemButton.setVisibility(View.VISIBLE);
+                        holder.deleteItemButton.setVisibility(View.VISIBLE);
                         holder.hideShowLayout.setVisibility(View.VISIBLE);
                         break;
                     case View.VISIBLE:
-                        //holder.notesAboutOvertime.setVisibility(View.GONE);
+                        holder.notesAboutOvertime.setVisibility(View.GONE);
                         holder.imageButtonRecycleView.setImageResource(android.R.drawable.arrow_down_float);
-                        //holder.deleteItemButton.setVisibility(View.GONE);
+                        holder.deleteItemButton.setVisibility(View.GONE);
                         holder.hideShowLayout.setVisibility(View.GONE);
                         break;
                     case View.INVISIBLE:
-                        //holder.notesAboutOvertime.setVisibility(View.VISIBLE);
-                        //holder.deleteItemButton.setVisibility(View.VISIBLE);
+                        holder.notesAboutOvertime.setVisibility(View.VISIBLE);
+                        holder.deleteItemButton.setVisibility(View.VISIBLE);
                         holder.hideShowLayout.setVisibility(View.VISIBLE);
                         break;
                     default:
@@ -147,9 +148,12 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
                 holder.layout.setBackgroundColor(context.getColor(R.color.negativeColorOvertime)); // light red
             holder.dateRecycleView.setText(item.getDateOfOvertime());
             holder.dayRecycleView.setText(daysList[item.getDayOfWeek() - 1]);
-            holder.hoursRecycleView.setText(String.valueOf(item.getNumberOfHours()));
-            holder.minutesRecycleView.setText(String.valueOf(item.getNumberOfMinutes()));
+            holder.hoursRecycleView.setHint(String.valueOf(item.getNumberOfHours()));
+            holder.minutesRecycleView.setHint(String.valueOf(item.getNumberOfMinutes()));
             holder.notesAboutOvertime.setText(item.getNote());
+
+            // ustawiamy kursor na końcu tego editText
+            //
 
             holder.deleteItemButton.setOnClickListener(new View.OnClickListener()
             {
@@ -157,6 +161,7 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
                 public void onClick(View v)
                 {
                     listener.deleteItem(item);
+                    Toast.makeText(context, R.string.operation_saved, Toast.LENGTH_SHORT).show();
                 }
             });
 
@@ -178,13 +183,23 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
                             // dayOfMonth musi być + 1 bo Calendar.MONTH jest od 0-11
                             // a LocalDate używa od 1 do 12.
                             listener.changeDateOfOvertime(year, month + 1, dayOfMonth, item.getUid());
+                            Toast.makeText(context, R.string.operation_saved, Toast.LENGTH_SHORT).show();
                         }
                     }, year, month, day)
                             .show();
                 }
             });
 
-            final int oldHoursValue = Integer.parseInt(holder.hoursRecycleView.getText().toString());
+            holder.hoursRecycleView.setOnFocusChangeListener(new View.OnFocusChangeListener()
+            {
+                @Override
+                public void onFocusChange(View v, boolean hasFocus)
+                {
+                    oldHoursValue = Integer.parseInt(holder.hoursRecycleView.getHint().toString());
+                }
+            });
+
+
             holder.hoursRecycleView.setOnEditorActionListener(new TextView.OnEditorActionListener()
             {
                 @Override
@@ -192,23 +207,46 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
                 {
                     try
                     {
-                        int newHoursValue = Integer.parseInt(holder.hoursRecycleView.getText().toString());
-                        int minutes = Integer.parseInt(holder.minutesRecycleView.getText().toString());
+                        int newHoursValue;
+                        if (holder.hoursRecycleView.getText().toString().equals(""))
+                            newHoursValue = 0;
+                        else
+                            newHoursValue = Integer.parseInt(
+                                    holder.hoursRecycleView.getText().toString());
+                        int minutes = Integer.parseInt(holder.minutesRecycleView.getHint().toString());
                         if ( (newHoursValue >= 0 && minutes < 0) || (newHoursValue < 0 && minutes >= 0) )
                             minutes = -minutes;
                         listener.changeNumberOfMinutesAndHours(newHoursValue, minutes, item.getUid());
+                        holder.hoursRecycleView.setHint(String.valueOf(newHoursValue));
+                        holder.hoursRecycleView.setText("");
+                        Toast.makeText(context, R.string.operation_saved, Toast.LENGTH_SHORT).show();
                         return false;
                     }
                     catch (NumberFormatException e)
                     {
-                        holder.hoursRecycleView.setText(oldHoursValue);
+                        holder.hoursRecycleView.setText(String.valueOf(oldHoursValue));
                         e.printStackTrace();
                         return false;
                     }
                 }
             });
 
-            final int oldMinutesValue = Integer.parseInt(holder.minutesRecycleView.getText().toString());
+            //********************************
+            // OBSŁUGUJEMY MINUTY
+            //********************************
+
+            // to jest metoda, przypisująca aktualną wartość minut w momencie gdy pole zyskuje focus
+            holder.minutesRecycleView.setOnFocusChangeListener(new View.OnFocusChangeListener()
+            {
+                @Override
+                public void onFocusChange(View v, boolean hasFocus)
+                {
+                    oldMinutesValue = Integer.parseInt(holder.minutesRecycleView.getHint().toString());
+                }
+            });
+
+            // metoda wywoływana gdy wciśniemy ok na klawiaturze bo w xmlu
+            // dla tego View ustawione mamy android:imeOptions="actionDone"
             holder.minutesRecycleView.setOnEditorActionListener(new TextView.OnEditorActionListener()
             {
                 @Override
@@ -216,18 +254,28 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
                 {
                     try
                     {
-                        int newMinutesValue = Integer.parseInt(holder.minutesRecycleView.getText().toString());
+                        int newMinutesValue;
+                        if (holder.minutesRecycleView.getText().toString().equals(""))
+                            newMinutesValue = 0;
+                        else
+                            newMinutesValue = Integer.parseInt(
+                                    holder.minutesRecycleView.getText().toString());
                         if (Math.abs(newMinutesValue) < 60)
                         {
-                            int hours = Integer.parseInt(holder.hoursRecycleView.getText().toString());
+                            int hours = Integer.parseInt(holder.hoursRecycleView.getHint().toString());
                             if ( (newMinutesValue < 0 && hours > 0) || (newMinutesValue >=0 && hours < 0) )
                                 hours = -hours;
                             listener.changeNumberOfMinutesAndHours(hours, newMinutesValue, item.getUid());
+                            holder.minutesRecycleView.setHint(String.valueOf(newMinutesValue));
+                            holder.minutesRecycleView.setText("");
+                            Toast.makeText(context, R.string.operation_saved, Toast.LENGTH_SHORT).show();
                             return false;
+                            // dajemy false bo wtedy klawiatura znika
+                            // na znak że nie chcemy dalej edytować
                         }
                         else
                         {
-                            holder.minutesRecycleView.setText(oldMinutesValue);
+                            holder.minutesRecycleView.setText("");
                             AlertDialog.Builder builder = new AlertDialog.Builder(context);
                             builder.setTitle(R.string.incorrect_minutes_numbers)
                                     .setMessage(R.string.minutes_lower_60)
@@ -241,23 +289,36 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
                                         }
                                     })
                                     .show();
-                            return false;
+                            return true;
                         }
                     }
                     catch (NumberFormatException e)
                     {
                         e.printStackTrace();
-                        holder.minutesRecycleView.setText(oldMinutesValue);
+                        holder.minutesRecycleView.setText(String.valueOf(oldMinutesValue));
                         return false;
                     }
                 }
             });
 
-            final String oldNote = holder.notesAboutOvertime.getText().toString();
-            holder.saveNoteButton.setOnClickListener(new View.OnClickListener()
+            // to jest wywoływane gdy weźmiemy focus na edit text gdzie jest notatka
+            holder.notesAboutOvertime.setOnFocusChangeListener(new View.OnFocusChangeListener()
             {
                 @Override
-                public void onClick(View v)
+                public void onFocusChange(View v, boolean hasFocus)
+                {
+                    // jeśli view ma focus to przypisujemy zmiennej oldNote aktualną wartoś
+                    if (hasFocus)
+                        oldNote = holder.notesAboutOvertime.getText().toString();
+                    // jeśli natomiast traci focus to nic się nie dzieje
+                }
+            });
+
+            // to jest wywoływane jeśli klikniemy ok na soft klawiaturze
+            holder.notesAboutOvertime.setOnEditorActionListener(new TextView.OnEditorActionListener()
+            {
+                @Override
+                public boolean onEditorAction(TextView v, int actionId, KeyEvent event)
                 {
                     String newNote = holder.notesAboutOvertime.getText().toString();
                     if (!oldNote.equals(newNote))
@@ -265,6 +326,7 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
                         listener.saveNote(newNote, item.getUid());
                         Toast.makeText(context, R.string.operation_saved, Toast.LENGTH_SHORT).show();
                     }
+                    return false;
                 }
             });
         }
@@ -277,6 +339,8 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
         void changeDateOfOvertime(int chosenYear, int chosenMonth, int chosenDayOfWeek, int id);
         void changeNumberOfMinutesAndHours(int hours, int minutes, int id);
         void saveNote(String note, int id);
+        //void requestFocusOn();
+        // jeśli focusable true nie zadziąła to trezeba spróbować na spinerze z sortownaiem
     }
 
 

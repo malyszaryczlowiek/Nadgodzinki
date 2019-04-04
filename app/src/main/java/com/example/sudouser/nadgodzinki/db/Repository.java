@@ -3,18 +3,17 @@ package com.example.sudouser.nadgodzinki.db;
 import android.app.Application;
 import android.os.AsyncTask;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
-import com.example.sudouser.nadgodzinki.db.BazaDanych;
-import com.example.sudouser.nadgodzinki.db.Item;
-import com.example.sudouser.nadgodzinki.db.TabelaDao;
-import com.google.android.material.tabs.TabLayout;
+import com.example.sudouser.nadgodzinki.Dialogs.SearchHelpers.SearchFlags;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class Repository
 {
-
     // obiekt TabelaDao tak jak w klasie BazaDanych.
     private TabelaDao tabelaDao;
     private LiveData<List<Item>> allItems;
@@ -26,11 +25,8 @@ public class Repository
 
         /* przypisujemy do wywoływań bazę danych */
         tabelaDao = db.tabelaDao();
-
-        /* pobieramy z bazy danych wszystkie itemy jakie tylko tam są */
         allItems = tabelaDao.loadAllItems();
     }
-
 
 
     /** to jest wrapper za pomocą którego będziemy przekazywali wszystkie znaleizone
@@ -43,8 +39,6 @@ public class Repository
     }
 
 
-
-
     /** w tym momencie wewnątrz tej funkcji tworząc nowy obiekt insertAsyncTask()
      * insertujemy item w innym wątku. ukrywamy w ten sposób implementację wielowątkowości
      * którą stosujemy.
@@ -52,6 +46,78 @@ public class Repository
     public void insert(Item item)
     {
         new insertAsyncTask(tabelaDao).execute(item);
+    }
+
+
+    /**
+     * query zwracające LiveData<List<Item>> lub Flowable są same z siebie wykonywane asynchronicznie
+     * dlatego nie ma potrzeby umieszczać ich w nowym wątku.
+     * @param chosenDate
+     * @param chosenHours
+     * @param chosenMinutes
+     * @param flags
+     * @return
+     */
+    @NonNull
+    public LiveData<List<Item>> loadItemsWhere(String chosenDate, int chosenHours, int chosenMinutes, SearchFlags flags)
+    {
+        switch (flags.getSorting())
+        {
+            case DSC:
+                switch (flags.getCutting())
+                {
+                    case BEFORE:
+                        switch (flags.getLength())
+                        {
+                            case LONGER:
+                                return tabelaDao.loadItemsWhereOvertimesAreLongerThanAndDateIsBeforeDesc(chosenHours, chosenMinutes, chosenDate);
+                            case SHORTER:
+                                return tabelaDao.loadItemsWhereOvertimesAreShorterThanAndDateIsBeforeDesc(chosenHours, chosenMinutes, chosenDate);
+                            default:
+                                return null;
+                        }
+                    case AFTER:
+                        switch (flags.getLength())
+                        {
+                            case LONGER:
+                                return tabelaDao.loadItemsWhereOvertimesAreLongerThanAndDateIsAfterDesc(chosenHours, chosenMinutes, chosenDate);
+                            case SHORTER:
+                                return tabelaDao.loadItemsWhereOvertimesAreShorterThanAndDateIsAfterDesc(chosenHours, chosenMinutes, chosenDate);
+                            default:
+                                return null;
+                        }
+                    default:
+                        return null;
+                }
+            case ASC:
+                switch (flags.getCutting())
+                {
+                    case BEFORE:
+                        switch (flags.getLength())
+                        {
+                            case LONGER:
+                                return tabelaDao.loadItemsWhereOvertimesAreLongerThanAndDateIsBeforeASC(chosenHours, chosenMinutes, chosenDate);
+                            case SHORTER:
+                                return tabelaDao.loadItemsWhereOvertimesAreShorterThanAndDateIsBeforeASC(chosenHours, chosenMinutes, chosenDate);
+                            default:
+                                return null;
+                        }
+                    case AFTER:
+                        switch (flags.getLength())
+                        {
+                            case LONGER:
+                                return tabelaDao.loadItemsWhereOvertimesAreLongerThanAndDateDateIsAfterAsc(chosenHours, chosenMinutes, chosenDate);
+                            case SHORTER:
+                                return tabelaDao.loadItemsWhereOvertimesAreShorterThanAndDateIsAfterASC(chosenHours, chosenMinutes, chosenDate);
+                            default:
+                                return null;
+                        }
+                    default:
+                        return null;
+                }
+            default:
+                return null;
+        }
     }
 
     private static class insertAsyncTask extends AsyncTask<Item, Void, Void>

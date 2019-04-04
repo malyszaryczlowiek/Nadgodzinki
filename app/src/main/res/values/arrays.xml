@@ -31,4 +31,20 @@
         <item name="saturday">7</item>
         <item name="sunday">1</item>
     </string-array>
+
+    <string-array name="spinner_sorting_date">
+        <item>Date descending</item>
+        <item>Date ascending</item>
+    </string-array>
+
+    <string-array name="spinner_cutting_date">
+        <item>Older than</item>
+        <item>Newer than</item>
+    </string-array>
+
+    <string-array name="spinner_overtime_length">
+        <item>Longer than</item>
+        <item>Shorter than</item>
+    </string-array>
+
 </resources>

@@ -3,6 +3,7 @@ package com.example.sudouser.nadgodzinki.db;
 import java.util.List;
 
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -24,36 +25,45 @@ public interface TabelaDao
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(Item item);
 
+
     @Query("SELECT * FROM tabela ORDER BY DateOfOvertime DESC")
     LiveData<List<Item>> loadAllItems();
+
+    //@Query("SELECT * FROM tabela")
+    //MutableLiveData<List<Item>> testQuery();
 
     //*******************************
     // Sorting queries
 
     ///*
-    @Query("SELECT * FROM tabela WHERE Hours> :hours AND Minutes > :minutes AND DateOfOvertime > :dateOfOvertime ORDER BY DateOfOvertime DESC")
-    LiveData<List<Item>> loadItemsWhereOvertimesAreBiggerThanAndDateIsLaterDesc(int hours, int minutes, String dateOfOvertime);
+    @Query("SELECT * FROM tabela WHERE Hours > :hours AND Minutes > :minutes AND DateOfOvertime > :dateOfOvertime ORDER BY DateOfOvertime DESC")
+    LiveData<List<Item>> loadItemsWhereOvertimesAreLongerThanAndDateIsAfterDesc(int hours, int minutes, String dateOfOvertime);
 
     @Query("SELECT * FROM tabela WHERE Hours > :hours AND Minutes > :minutes AND DateOfOvertime > :dateOfOvertime ORDER BY DateOfOvertime ASC")
-    LiveData<List<Item>> loadItemsWhereOvertimesAreBiggerThanAndDateDateIsLaterAsc(int hours, int minutes, String dateOfOvertime);
+    LiveData<List<Item>> loadItemsWhereOvertimesAreLongerThanAndDateDateIsAfterAsc(int hours, int minutes, String dateOfOvertime);
 
-    @Query("SELECT * FROM tabela WHERE Hours > :hours AND Minutes > :minutes AND DateOfOvertime <= :dateOfOvertime ORDER BY DateOfOvertime DESC")
-    LiveData<List<Item>> loadItemsWhereOvertimesAreBiggerThanAndDateIsEarlierDesc(int hours, int minutes, String dateOfOvertime);
+    /*
+    @Query("SELECT * FROM tabela WHERE Hours > :hours AND Minutes > :minutes AND DateOfOvertime <= :dateOfOvertime ORDER BY DateOfOvertime DESC") // to w które wchodizmy
+    LiveData<List<Item>> loadItemsWhereOvertimesAreLongerThanAndDateIsBeforeDesc(int hours, int minutes, String dateOfOvertime);
+     */
+
+    @Query("SELECT * FROM tabela WHERE (Hours * 60 + Minutes) > (:hours * 60 + :minutes) AND DateOfOvertime <= :dateOfOvertime ORDER BY DateOfOvertime DESC") // to w które wchodizmy
+    LiveData<List<Item>> loadItemsWhereOvertimesAreLongerThanAndDateIsBeforeDesc(int hours, int minutes, String dateOfOvertime);
 
     @Query("SELECT * FROM tabela WHERE Hours > :hours AND Minutes > :minutes AND DateOfOvertime <= :dateOfOvertime ORDER BY DateOfOvertime ASC")
-    LiveData<List<Item>> loadItemsWhereOvertimesAreBiggerThanAndDateIsEarlierASC(int hours, int minutes, String dateOfOvertime);
+    LiveData<List<Item>> loadItemsWhereOvertimesAreLongerThanAndDateIsBeforeASC(int hours, int minutes, String dateOfOvertime);
 
     @Query("SELECT * FROM tabela WHERE Hours < :hours AND Minutes < :minutes AND DateOfOvertime > :dateOfOvertime ORDER BY DateOfOvertime DESC")
-    LiveData<List<Item>> loadItemsWhereOvertimesAreLowerThanAndDateIsLaterDesc(int hours, int minutes, String dateOfOvertime);
+    LiveData<List<Item>> loadItemsWhereOvertimesAreShorterThanAndDateIsAfterDesc(int hours, int minutes, String dateOfOvertime);
 
     @Query("SELECT * FROM tabela WHERE Hours < :hours AND Minutes < :minutes AND DateOfOvertime > :dateOfOvertime ORDER BY DateOfOvertime ASC")
-    LiveData<List<Item>> loadItemsWhereOvertimesAreLowerThanAndDateIsLaterASC(int hours, int minutes, String dateOfOvertime);
+    LiveData<List<Item>> loadItemsWhereOvertimesAreShorterThanAndDateIsAfterASC(int hours, int minutes, String dateOfOvertime);
 
     @Query("SELECT * FROM tabela WHERE Hours < :hours AND Minutes < :minutes AND DateOfOvertime <= :dateOfOvertime ORDER BY DateOfOvertime DESC")
-    LiveData<List<Item>> loadItemsWhereOvertimesAreLowerThanAndDateIsEarlierDesc(int hours, int minutes, String dateOfOvertime);
+    LiveData<List<Item>> loadItemsWhereOvertimesAreShorterThanAndDateIsBeforeDesc(int hours, int minutes, String dateOfOvertime);
 
     @Query("SELECT * FROM tabela WHERE Hours < :hours AND Minutes < :minutes AND DateOfOvertime <= :dateOfOvertime ORDER BY DateOfOvertime ASC")
-    LiveData<List<Item>> loadItemsWhereOvertimesAreLowerThanAndDateIsEarlierASC(int hours, int minutes, String dateOfOvertime);
+    LiveData<List<Item>> loadItemsWhereOvertimesAreShorterThanAndDateIsBeforeASC(int hours, int minutes, String dateOfOvertime);
      //*/
 
 

@@ -71,4 +71,7 @@
     <string name="set_new_date">Ustaw nową datę</string>
     <string name="list_of_overtimes">Lista nadgodzin</string>
     <string name="save_note">Zapisz notatkę</string>
+    <string name="search_and_filter">Szukaj i Filtruj</string>
+    <string name="search">Szukaj</string>
+    <string name="choose_search_criteria">Sprecyzuj kryteria szukania</string>
 </resources>

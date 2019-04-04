@@ -2,6 +2,7 @@ package com.example.sudouser.nadgodzinki;
 
 import android.app.Application;
 
+import com.example.sudouser.nadgodzinki.Dialogs.SearchHelpers.SearchFlags;
 import com.example.sudouser.nadgodzinki.db.Item;
 import com.example.sudouser.nadgodzinki.db.Repository;
 
@@ -25,6 +26,8 @@ public class ItemViewModel extends AndroidViewModel
     private Repository mRepository;
     private LiveData<List<Item>> allItems;
     private MutableLiveData<LocalDate> localeDataLiveData = new MutableLiveData<>();
+    private LiveData<List<Item>> selectedItems;
+
 
     public ItemViewModel(Application application)
     {
@@ -34,7 +37,13 @@ public class ItemViewModel extends AndroidViewModel
     }
 
 
-    public LiveData<List<Item>> getAllItems() { return allItems; }
+    public LiveData<List<Item>> getAllItems()
+    {
+        if (selectedItems == null)
+            return allItems;
+        else
+            return selectedItems;
+    }
 
     public void insert(Item item)
     {
@@ -78,5 +87,18 @@ public class ItemViewModel extends AndroidViewModel
     public LiveData<LocalDate> getLocalDate()
     {
         return localeDataLiveData;
+    }
+
+    public LiveData<List<Item>> getSelectedItems()
+    {
+        /*
+        selectedItems nigdy nie będzie null co najwyżej jego zawartość może być
+         */
+        return selectedItems;
+    }
+
+    public void loadItemsWhere(String chosenDate, int chosenHours, int chosenMinutes, SearchFlags flags)
+    {
+        selectedItems = mRepository.loadItemsWhere(chosenDate, chosenHours, chosenMinutes, flags);
     }
 }

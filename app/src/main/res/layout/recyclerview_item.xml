@@ -18,6 +18,7 @@
             android:textAlignment="center"
             android:textAllCaps="false"
             android:textSize="18sp"
+            android:focusedByDefault="true"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/dateRecycleView"
             app:layout_constraintHorizontal_chainStyle="spread_inside"
@@ -60,22 +61,26 @@
             android:textColorLink="@color/colorAccent"
             android:textSize="18sp"
             android:maxLength="3"
+            android:singleLine="true"
+            android:imeOptions="actionDone"
             app:layout_constraintBaseline_toBaselineOf="@+id/colonRecycleView"
             app:layout_constraintEnd_toStartOf="@+id/imageButtonRecycleView"
             app:layout_constraintStart_toEndOf="@+id/colonRecycleView" />
 
         <EditText
             android:id="@+id/hoursRecycleView"
-            android:layout_width="25dp"
+            android:layout_width="29dp"
             android:layout_height="wrap_content"
-            android:importantForAutofill="no"
             android:ems="10"
             android:hint="@string/zero"
+            android:importantForAutofill="no"
             android:inputType="numberSigned"
+            android:maxLength="2"
             android:textAlignment="center"
             android:textColorLink="@color/colorAccent"
             android:textSize="18sp"
-            android:maxLength="2"
+            android:singleLine="true"
+            android:imeOptions="actionDone"
             app:layout_constraintBottom_toBottomOf="@+id/imageButtonRecycleView"
             app:layout_constraintEnd_toStartOf="@+id/colonRecycleView"
             app:layout_constraintStart_toEndOf="@+id/dateRecycleView" />
@@ -105,17 +110,6 @@
         app:layout_constraintTop_toBottomOf="@+id/dayRecycleView">
 
         <Button
-            android:id="@+id/saveNoteButtonRecycleView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:text="@string/save_note"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/deleteItemButtonRecycleView"
-            app:layout_constraintTop_toBottomOf="@+id/notesAboutOvertime" />
-
-        <Button
             android:id="@+id/deleteItemButtonRecycleView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -123,9 +117,9 @@
             android:layout_marginEnd="8dp"
             android:elevation="0dp"
             android:text="@string/delete_this_overtime"
-            android:visibility="visible"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/saveNoteButtonRecycleView"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/notesAboutOvertime"
             app:layout_constraintVertical_bias="0.0" />
@@ -138,13 +132,20 @@
             android:layout_marginEnd="8dp"
             android:ems="10"
             android:hint="@string/note"
+            android:imeOptions="actionDone"
             android:importantForAutofill="no"
-            android:inputType="textMultiLine"
+            android:inputType="textImeMultiLine"
+            android:singleLine="false"
             android:textSize="18sp"
-            android:visibility="visible"
+            android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </LinearLayout>
+
+<!--
+opcja android:imeOptions="actionDone" powoduje, że przy kliknięciu na edi text nie mamy
+przycisku dalej przenoszącego nas do innego edit text tylko przycisk ok kończący edycję
+-->

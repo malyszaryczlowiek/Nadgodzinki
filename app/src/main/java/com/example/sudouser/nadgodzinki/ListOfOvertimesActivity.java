@@ -26,12 +26,15 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.sudouser.nadgodzinki.BuckUp.BuckUpFile;
 import com.example.sudouser.nadgodzinki.BuckUp.MyFileProvider;
 import com.example.sudouser.nadgodzinki.BuckUp.XmlParser;
+import com.example.sudouser.nadgodzinki.Dialogs.SearchFilterItemsDialog;
+import com.example.sudouser.nadgodzinki.Dialogs.SearchHelpers.SearchFlags;
 import com.example.sudouser.nadgodzinki.RecyclerViewMain.ItemListAdapter;
 import com.example.sudouser.nadgodzinki.db.Item;
 
@@ -44,12 +47,17 @@ import java.util.Arrays;
 import java.util.List;
 
 // implementuje ActivityCompat.OnRequestPermissionsResultCallback bo używamy intentu, który ma zwracać jakiś resultat
-public class ListOfOvertimesActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, ItemListAdapter.ItemListAdapterListener
+public class ListOfOvertimesActivity
+        extends AppCompatActivity
+        implements ActivityCompat.OnRequestPermissionsResultCallback,
+        ItemListAdapter.ItemListAdapterListener,
+        SearchFilterItemsDialog.ChosenSearchCriteriaListener
 {
     private ItemViewModel mItemViewModel;
     private SharedPreferences sharedPreferences;
     private List<Item> listOfItems =  new ArrayList<>();
     private Context thisContext = this;
+    private ItemListAdapter adapter;
 
     // stałe wykorzystane w metodzie readBuckUp()
     private static final int MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 1;
@@ -63,21 +71,36 @@ public class ListOfOvertimesActivity extends AppCompatActivity implements Activi
 
         mItemViewModel = ViewModelProviders.of(this).get(ItemViewModel.class);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        mItemViewModel.getAllItems().observe(this, items -> listOfItems = items );
+        //mItemViewModel.getAllItems().observe(this, items -> listOfItems = items );
 
         RecyclerView recyclerView = findViewById(R.id.allItemsTable);
-        final ItemListAdapter adapter = new ItemListAdapter(this); // TODO uwaga na znacznik final, może chyba powodować kłopoty
+        adapter = new ItemListAdapter(this); // TODO uwaga na znacznik final, może chyba powodować kłopoty
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        findViewById(R.id.search_and_filter_button).requestFocus();
 
         mItemViewModel.getAllItems().observe(this, new Observer<List<Item>>()
         {
             @Override
             public void onChanged(List<Item> items)
             {
+                listOfItems = items;
                 adapter.setItems(items);
             }
         });
+
+
+        Button searchFilterButton = findViewById(R.id.search_and_filter_button);
+        searchFilterButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                SearchFilterItemsDialog searcher = new SearchFilterItemsDialog();
+                searcher.show(getSupportFragmentManager(), "search_filter_tag");
+            }
+        });
+
 
         if (getIntent().getBooleanExtra("fromNotifier", false))
             makeBuckup();
@@ -544,12 +567,48 @@ public class ListOfOvertimesActivity extends AppCompatActivity implements Activi
     public void changeNumberOfMinutesAndHours(int hours, int minutes, int id)
     {
         mItemViewModel.updateNumberOfMinutesAndHours(hours, minutes, id);
+        //final int oldMinutesValue = Integer.parseInt(holder.minutesRecycleView.getText().toString());
+        findViewById(R.id.search_and_filter_button).requestFocus();
+        //getWindow().setSoftInputMode(SOFT_INPUT_STATE_HIDDEN);
+        /*
+        InputMethodManager inputMethodManager = (InputMethodManager)
+                getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(
+                findViewById(R.id.spinnerEditTextMinutes).getWindowToken(),
+                InputMethodManager.HIDE_NOT_ALWAYS); // hahhaha it's working!!!
+         */
     }
 
     @Override
     public void saveNote(String note, int id)
     {
         mItemViewModel.updateNote(note, id);
+        findViewById(R.id.search_and_filter_button).requestFocus();
+        //getWindow().setSoftInputMode(SOFT_INPUT_STATE_HIDDEN);
+        /*
+        InputMethodManager inputMethodManager = (InputMethodManager)
+                getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(
+                findViewById(R.id.spinnerEditTextMinutes).getWindowToken(),
+                InputMethodManager.HIDE_NOT_ALWAYS); // hahhaha it's working!!!
+         */
+
+    }
+
+    @Override
+    public void manageChosenCriteria(String chosenDate, int chosenHours, int chosenMinutes, SearchFlags flags)
+    {
+        mItemViewModel.loadItemsWhere(chosenDate, chosenHours, chosenMinutes, flags);
+        if(mItemViewModel.getSelectedItems().hasActiveObservers())
+            mItemViewModel.getSelectedItems().removeObservers(this);
+        mItemViewModel.getSelectedItems().observe(this, new Observer<List<Item>>()
+        {
+            @Override
+            public void onChanged(List<Item> items)
+            {
+                adapter.setItems(items);
+            }
+        });
     }
 }
 

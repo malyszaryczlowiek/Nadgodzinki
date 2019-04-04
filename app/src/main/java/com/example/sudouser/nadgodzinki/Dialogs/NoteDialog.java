@@ -24,6 +24,7 @@ public class NoteDialog extends AppCompatDialogFragment
     private RadioButton showAgainButton;
     private NoteDialogListener listener;
 
+    @NonNull
     @Override
     public Dialog onCreateDialog(Bundle saveInstanceState)
     {
@@ -83,6 +84,7 @@ public class NoteDialog extends AppCompatDialogFragment
 // któ©ych dzidziczymy
 
 // ctrl alt t - skrót do wrapowania danyj lini np w block try czy while czy if.
+// ctrl + shift +s
 
 
 

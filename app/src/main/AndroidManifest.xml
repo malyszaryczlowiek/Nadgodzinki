@@ -23,7 +23,8 @@
         <activity
             android:name=".ListOfOvertimesActivity"
             android:parentActivityName=".MainActivity"
-            android:label="@string/list_of_overtimes"/>
+            android:label="@string/list_of_overtimes"
+            android:windowSoftInputMode="stateHidden"/>
         <activity
             android:name=".SettingsPreferences"
             android:parentActivityName=".MainActivity"
