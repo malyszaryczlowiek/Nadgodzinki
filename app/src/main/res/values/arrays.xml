@@ -47,4 +47,11 @@
         <item>Shorter than</item>
     </string-array>
 
+    <string-array name="spinner_overtime_type">
+        <item>All</item>
+        <item>Done</item>
+        <item>Taken</item>
+    </string-array>
+
+
 </resources>

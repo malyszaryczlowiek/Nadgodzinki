@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,10 +18,8 @@ import android.widget.Toast;
 import com.example.sudouser.nadgodzinki.BuckUp.BuckUpAlarmBroadcastReceiver;
 import com.example.sudouser.nadgodzinki.Dialogs.NoteDialog;
 import com.example.sudouser.nadgodzinki.Settings.ListOfCategoriesActivity;
+import com.example.sudouser.nadgodzinki.ViewModels.ItemViewModel;
 import com.example.sudouser.nadgodzinki.db.Item;
-
-import java.time.LocalDate;
-import java.util.Calendar;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -39,8 +38,10 @@ public class MainActivity extends AppCompatActivity implements NoteDialog.NoteDi
     private static final int pendingIntentRequestCode = 2;
 
     // fields necessary to create Item
-    private String dateOfOvertime;
-    private String todayString;
+    private int yearOfOvertime;
+    private int monthOfOvertime;
+    private int dayOfOvertime;
+    private String todayDate;
     int dayOfWeek;
     int minutesInt;
     int hoursInt;
@@ -59,24 +60,34 @@ public class MainActivity extends AppCompatActivity implements NoteDialog.NoteDi
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         // TODO zrobić najpierw nowy wątek dla mItemViewModel'a to nam potwierdzi lub obali koncepcję
         // czy można w ten sposób uruchamiać Activity
         mItemViewModel = ViewModelProviders.of(this).get(ItemViewModel.class);
-        final CalendarView calendar = findViewById(R.id.mainCalendar);
-        calendar.setOnDateChangeListener(new CalendarView.OnDateChangeListener()
+        final CalendarView calendarView = findViewById(R.id.mainCalendar);
+        calendarView.setMaxDate(Calendar.getInstance().getTimeInMillis());
+        calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener()
         {
             @Override
             public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth)
             {
-                mItemViewModel.setLocalDate(LocalDate.of(year, month + 1, dayOfMonth));
+                Calendar calendarLocal = Calendar.getInstance();
+                calendarLocal.set(year, month, dayOfMonth);
+                mItemViewModel.setLocalDate(calendarLocal);
             }
         });
         if (mItemViewModel.getLocalDate().getValue() != null)
-            calendar.setDate(mItemViewModel.getLocalDate().getValue().toEpochDay() * 24 * 3600 * 1000);
+            calendarView.setDate(mItemViewModel.getLocalDate().getValue().getTimeInMillis());
         else
-            mItemViewModel.setLocalDate(LocalDate.ofEpochDay((calendar.getDate() / (24 * 3600 * 1000))));
+        {
+            Calendar cal = Calendar.getInstance();
+            cal.setTimeInMillis(calendarView.getDate());
+            mItemViewModel.setLocalDate(cal);
+        }
 
+        Calendar today = Calendar.getInstance();
+        todayDate = String.valueOf(today.get(Calendar.YEAR)) + "." +
+                String.valueOf(today.get(Calendar.MONTH) + 1) + "." +
+                String.valueOf(today.get(Calendar.DAY_OF_MONTH));
 
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         createAlarmManager();
@@ -133,12 +144,12 @@ public class MainActivity extends AppCompatActivity implements NoteDialog.NoteDi
                     break;
             }
             int chosenDay = Integer.valueOf(mSharedPreferences.getString("buckupDay", "6"));//getInt("buckupDay", 6);
-            long today = LocalDate.now().toEpochDay() * 1000 * 3600 * 24;
             Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(today);
+            calendar.set(Calendar.HOUR,0);
+            calendar.set(Calendar.MINUTE, 0);
             calendar.add(Calendar.DAY_OF_WEEK, Math.abs(calendar.get(Calendar.DAY_OF_WEEK) - chosenDay));
             calendar.add(Calendar.HOUR_OF_DAY, 19);
-            calendar.add(Calendar.MINUTE, 11);
+            calendar.add(Calendar.MINUTE, 0);
 
             mAlarm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
             Intent intent = new Intent(getApplicationContext(), BuckUpAlarmBroadcastReceiver.class);
@@ -193,6 +204,9 @@ public class MainActivity extends AppCompatActivity implements NoteDialog.NoteDi
             case R.id.menuItemListOfOvertimes:
                 showListOfOvertimes();
                 return true;
+            case R.id.menuItemStatistics:
+                showStatistics();
+                return true;
             case R.id.menuItemSettings:
                 showSettings();
                 return true;
@@ -231,6 +245,12 @@ public class MainActivity extends AppCompatActivity implements NoteDialog.NoteDi
         startActivity(intent);
     }
 
+    public void showStatistics()
+    {
+        Intent intent = new Intent(this, Statistics.class);
+        startActivity(intent);
+    }
+
     public void showSettings()
     {
         Intent intent = new Intent(this, SettingsPreferences.class);
@@ -258,7 +278,7 @@ public class MainActivity extends AppCompatActivity implements NoteDialog.NoteDi
         String minutes = minutesEditText.getText().toString();
         String hours = hoursEditText.getText().toString();
 
-        LocalDate date = mItemViewModel.getLocalDate().getValue();
+        Calendar date = mItemViewModel.getLocalDate().getValue();
 
         if (minutes.equals(""))
             minutes = "0";
@@ -292,45 +312,25 @@ public class MainActivity extends AppCompatActivity implements NoteDialog.NoteDi
         minutesInt = minutesSigned;
         hoursInt= hoursSigned;
 
-        LocalDate today = LocalDate.now();
-        dayOfWeek = date.getDayOfWeek().getValue(); // dzień tygodnia
-        boolean datecomparison = date.isAfter(today);
-        // isAfter nie może zwrócić nullPointerException, ponieważ w onCreate()
-        // do tego intentu mamy sprawdzanie czy mItemViewModel.getLocalDate().getValue() != null
-        // jeśli jest null to zostaje mu przypisana wartość daty z kalendarza i to warunkuje, że nigdy null nie będzie
-        if (datecomparison || Math.abs(minutesInt) >= 60 )
+        if (Math.abs(minutesInt) >= 60)
         {
-            if (Math.abs(minutesInt) >= 60)
-            {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle(R.string.incorrect_minutes)
-                        .setMessage(R.string.minutes_lower_60)
-                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id)
-                            {
-                                minutesEditText.setText("");
-                            }
-                        });
-                builder.show();
-            }
-            if (datecomparison)
-            {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle(R.string.incorrect_date)
-                        .setMessage(R.string.cannot_setup_future_date)
-                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id)
-                            {
-
-                            }
-                        });
-                builder.show();
-            }
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.incorrect_minutes)
+                    .setMessage(R.string.minutes_lower_60)
+                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id)
+                        {
+                            minutesEditText.setText("");
+                        }
+                    });
+            builder.show();
         }
         else  // to jest w przypadku gdy wszystko jest w porządku
         {
-            dateOfOvertime = date.toString();
-            todayString = today.toString();
+            dayOfOvertime = date.get(Calendar.DAY_OF_MONTH);// zaczyna się od 1
+            monthOfOvertime = date.get(Calendar.MONTH) +1;
+            yearOfOvertime = date.get(Calendar.YEAR);
+            dayOfWeek = date.get(Calendar.DAY_OF_WEEK); //sunday is beginning of week and has value 0
 
             if (mSharedPreferences.getBoolean("askAboutNote", true)) //prośba o dodanie notatki
             {
@@ -339,7 +339,7 @@ public class MainActivity extends AppCompatActivity implements NoteDialog.NoteDi
             }
             else
             {
-                mItemViewModel.insert(new Item(0, todayString, dayOfWeek, dateOfOvertime, hoursInt, minutesInt, ""));
+                mItemViewModel.insert(new Item(0, todayDate, dayOfWeek, yearOfOvertime, monthOfOvertime, dayOfOvertime, hoursInt, minutesInt, ""));
                 Toast.makeText(this, getText(R.string.operation_saved), Toast.LENGTH_SHORT).show();
             }
         }
@@ -350,7 +350,7 @@ public class MainActivity extends AppCompatActivity implements NoteDialog.NoteDi
     public void applyChanges(String note, boolean show)
     {
         mSharedPreferences.edit().putBoolean("askAboutNote", !show).apply(); //zaprzeczamy, że chemy pokazywać ponownie to okno
-        mItemViewModel.insert(new Item(0, todayString, dayOfWeek, dateOfOvertime, hoursInt, minutesInt, note));
+        mItemViewModel.insert(new Item(0, todayDate, dayOfWeek, yearOfOvertime, monthOfOvertime, dayOfOvertime, hoursInt, minutesInt, ""));
         Toast.makeText(this, getText(R.string.operation_saved), Toast.LENGTH_SHORT).show();
     }
 }

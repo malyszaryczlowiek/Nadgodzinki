@@ -45,13 +45,14 @@ public class XmlParser
                 {
                     Node item = listOfItems.item(i);
                     if (item instanceof Element) // omijamy whitespace przy przechodzeniu pomiędzy itemami
-                    { // mamy obiekt <Item>
+                    {
                         NodeList listOFItemsElements = item.getChildNodes();
-                        // musimy wyitemować elementy z każdego pojedyńczego itemu
                         String id = "";
                         String dateOfAddition = "";
                         String dayOfWeek = "";
-                        String dateOfOvertime = "";
+                        String yearOfOvertime = "";
+                        String monthOfOvertime = "";
+                        String dayOfOvertime = "";
                         String hours = "";
                         String minutes = "";
                         String note = "";
@@ -79,8 +80,14 @@ public class XmlParser
                                     case "DayOfWeek":
                                         dayOfWeek = value;
                                         break;
-                                    case "DateOfOvertime":
-                                        dateOfOvertime = value;
+                                    case "YearOfOvertime":
+                                        yearOfOvertime = value;
+                                        break;
+                                    case "MonthOfOvertime":
+                                        monthOfOvertime = value;
+                                        break;
+                                    case "DayOfOvertime":
+                                        dayOfOvertime = value;
                                         break;
                                     case "Hours":
                                         hours = value;
@@ -99,7 +106,10 @@ public class XmlParser
                             }
                         }
                         //   if (dateOfAddition != null && dateOfOvertime != null && hours != null && minutes != null)
-                        Item overhour = new Item(Integer.parseInt(id), dateOfAddition, Integer.parseInt(dayOfWeek), dateOfOvertime, Integer.parseInt(hours), Integer.parseInt(minutes), note);
+                        Item overhour = new Item(Integer.parseInt(id), dateOfAddition, Integer.parseInt(dayOfWeek),
+                                Integer.parseInt(yearOfOvertime), Integer.parseInt(monthOfOvertime),
+                                Integer.parseInt(dayOfOvertime), Integer.parseInt(hours),
+                                Integer.parseInt(minutes), note);
                         list.add(overhour);
                     }
                 }

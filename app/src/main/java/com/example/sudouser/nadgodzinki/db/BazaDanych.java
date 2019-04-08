@@ -10,7 +10,7 @@ import androidx.room.RoomDatabase;
  * klasa BazaDanych jest holderem i to ona zapewnia bezpośredni dostęp do danych w bazie
  * danych.
  */
-@Database(entities = Item.class, version = 4)// entities mogą być też w postaci entities = {User.class}
+@Database(entities = Item.class, version = 6)// entities mogą być też w postaci entities = {User.class}
 // jeśli mmay więcej niż jedną tabelę w bazie dancych
 public abstract class BazaDanych extends RoomDatabase
 {

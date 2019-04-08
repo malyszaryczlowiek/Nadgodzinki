@@ -12,7 +12,7 @@ import androidx.room.PrimaryKey;
  * która będzie zdefiniowana w bazie danych do której będzie można uzsykać dostęp
  * używając klasy BazaDanych z tego pakietu,
  */
-@Entity(tableName = "tabela", indices = {@Index(value = {"DateOfOvertime"}, unique = true)})
+@Entity(tableName = "tabela", indices = {@Index(value = {"YearOfOvertime", "MonthOfOvertime", "DayOfOvertime"}, unique = true)})
 public class Item
 {
     @PrimaryKey(autoGenerate = true)
@@ -21,11 +21,17 @@ public class Item
     @ColumnInfo(name = "DateOfItemAddition")
     private String dateOfItemAddition;
 
-    @ColumnInfo(name = "Day") // Day of week has values in 1 to 7 range. See: java.time.DayOfWeek public int getValue()
+    @ColumnInfo(name = "Day") // Day of week has values in 1 to 7 range.
     private int dayOfWeek;
 
-    @ColumnInfo(name = "DateOfOvertime")
-    private String dateOfOvertime;
+    @ColumnInfo(name = "DayOfOvertime")
+    private int dayOfOvertime;
+
+    @ColumnInfo(name = "MonthOfOvertime")
+    private int monthOfOvertime;
+
+    @ColumnInfo(name = "YearOfOvertime")
+    private int yearOfOvertime;
 
     @ColumnInfo(name = "Hours")
     private int numberOfHours;
@@ -35,31 +41,6 @@ public class Item
 
     @ColumnInfo(name = "Note")
     private String note;
-
-    //@ColumnInfo(name = "test")
-    //private LocalDate test;
-
-    public void setUid(int i) { uid = i;}
-
-    public void setDateOfItemAddition(String dateOfItemAddition)
-    {
-        this.dateOfItemAddition = dateOfItemAddition;
-    }
-
-    public void setDateOfOvertime(String dateOfOvertime)
-    {
-        this.dateOfOvertime = dateOfOvertime;
-    }
-
-    public void setNumberOfHours(int hours)
-    {
-        this.numberOfHours = hours;
-    }
-
-    public void setNumberOfMinutes(int minutes)
-    {
-        this.numberOfMinutes = minutes;
-    }
 
     public int getUid()
     {
@@ -76,9 +57,19 @@ public class Item
         return dayOfWeek;
     }
 
-    public String getDateOfOvertime()
+    public int getDayOfOvertime()
     {
-        return dateOfOvertime;
+        return dayOfOvertime;
+    }
+
+    public int getMonthOfOvertime()
+    {
+        return monthOfOvertime;
+    }
+
+    public int getYearOfOvertime()
+    {
+        return yearOfOvertime;
     }
 
     public int getNumberOfHours()
@@ -96,22 +87,24 @@ public class Item
         return note;
     }
 
-    public Item(int uid, String dateOfItemAddition, int dayOfWeek, String dateOfOvertime,
-         int numberOfHours, int numberOfMinutes, String note)
+    public Item(int uid, String dateOfItemAddition, int dayOfWeek,  int yearOfOvertime,
+                int monthOfOvertime, int dayOfOvertime, int numberOfHours, int numberOfMinutes,
+                String note)
     {
         this.uid                = uid;
         this.dateOfItemAddition = dateOfItemAddition;
         this.dayOfWeek          = dayOfWeek;
-        this.dateOfOvertime     = dateOfOvertime;
+        this.dayOfOvertime      = dayOfOvertime;
+        this.monthOfOvertime    = monthOfOvertime;
+        this.yearOfOvertime     = yearOfOvertime;
         this.numberOfHours      = numberOfHours;
         this.numberOfMinutes    = numberOfMinutes;
-        this.note                = note;
+        this.note               = note;
     }
 
     @Override
     public String toString()
     {
-        return getUid() + " | " + getDayOfWeek() + " | " + getDateOfOvertime() + " | h: "
-                + getNumberOfHours() + " | min: " + getNumberOfMinutes();
+        return getUid() + "" ;
     }
 }

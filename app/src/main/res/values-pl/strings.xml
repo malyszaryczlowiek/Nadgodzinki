@@ -74,4 +74,9 @@
     <string name="search_and_filter">Szukaj i Filtruj</string>
     <string name="search">Szukaj</string>
     <string name="choose_search_criteria">Sprecyzuj kryteria szukania</string>
+    <string name="clear_search">Wyczyść szukanie</string>
+    <string name="replace_item">Dokonać zamiany wpisu?</string>
+    <string name="replace">Zamień</string>
+    <string name="replace_item_explenation">Wpis o takiej dacie już isnieje. Czy chcesz go zaminienić na obecny? Zamiana spowoduje trwałe wykasowanie poprzedniego wpisu z tą datą i wstawienie obecnego.</string>
+    <string name="nothing_to_change">Brak zmian. Data jest ta sama.</string>
 </resources>

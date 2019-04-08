@@ -6,6 +6,9 @@
         android:id="@+id/menuItemListOfOvertimes"
         android:title="@string/list_of_overtimes" />
     <item
+        android:id="@+id/menuItemStatistics"
+        android:title="@string/statistics" />
+    <item
         android:id="@+id/menuItemSettings"
         android:title="@string/settings" />
     <item

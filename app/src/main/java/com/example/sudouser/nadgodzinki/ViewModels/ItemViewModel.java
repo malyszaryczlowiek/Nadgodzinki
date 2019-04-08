@@ -1,12 +1,12 @@
-package com.example.sudouser.nadgodzinki;
+package com.example.sudouser.nadgodzinki.ViewModels;
 
 import android.app.Application;
+import android.icu.util.Calendar;
 
 import com.example.sudouser.nadgodzinki.Dialogs.SearchHelpers.SearchFlags;
 import com.example.sudouser.nadgodzinki.db.Item;
 import com.example.sudouser.nadgodzinki.db.Repository;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -25,7 +25,7 @@ public class ItemViewModel extends AndroidViewModel
      * i z któ©ych będziemy przekazywali sobie dane. */
     private Repository mRepository;
     private LiveData<List<Item>> allItems;
-    private MutableLiveData<LocalDate> localeDataLiveData = new MutableLiveData<>();
+    private MutableLiveData<Calendar> localeDataLiveData = new MutableLiveData<>();
     private LiveData<List<Item>> selectedItems;
 
 
@@ -43,6 +43,11 @@ public class ItemViewModel extends AndroidViewModel
             return allItems;
         else
             return selectedItems;
+    }
+
+    public void clearSearchCriteria()
+    {
+        selectedItems = null;
     }
 
     public void insert(Item item)
@@ -65,9 +70,9 @@ public class ItemViewModel extends AndroidViewModel
         mRepository.mergeDatabaseWithBuckupFile(itemsFromBuckUp);
     }
 
-    public void updateDateOfOvertime(String dayOfWeek, int day, int id)
+    public void updateDateOfOvertime(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int dayOfWeek, int id)
     {
-        mRepository.updateDayOfOvertime(dayOfWeek, day, id);
+        mRepository.updateDayOfOvertime(yearOfOvertime, monthOfOvertime, dayOfOvertime, dayOfWeek, id);
     }
 
     public void updateNumberOfMinutesAndHours(int hours, int minutes, int id)
@@ -79,26 +84,58 @@ public class ItemViewModel extends AndroidViewModel
         mRepository.updateNote(note, id);
     }
 
-    public void setLocalDate(LocalDate date)
+    public void setLocalDate(Calendar date)
     {
         localeDataLiveData.setValue(date);
     }
 
-    public LiveData<LocalDate> getLocalDate()
+    public LiveData<Calendar> getLocalDate()
     {
         return localeDataLiveData;
     }
 
     public LiveData<List<Item>> getSelectedItems()
     {
-        /*
-        selectedItems nigdy nie będzie null co najwyżej jego zawartość może być
-         */
         return selectedItems;
     }
 
-    public void loadItemsWhere(String chosenDate, int chosenHours, int chosenMinutes, SearchFlags flags)
+    public void loadItemsWhere(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int chosenHours, int chosenMinutes, SearchFlags flags)
     {
-        selectedItems = mRepository.loadItemsWhere(chosenDate, chosenHours, chosenMinutes, flags);
+        selectedItems = mRepository.loadItemsWhere(yearOfOvertime,  monthOfOvertime, dayOfOvertime, chosenHours, chosenMinutes, flags);
+    }
+
+    public int checkNumberOfItemsWithDate(int year, int month, int day)
+    {
+        return mRepository.numberOfMatchingItems(year, month, day);
+    }
+
+    public int getUIdfromDate(int year, int month, int day)
+    {
+        return mRepository.getUIdFromDate(year, month, day);
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,11 +1,12 @@
 package com.example.sudouser.nadgodzinki.db;
 
 import android.app.Application;
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 
 import com.example.sudouser.nadgodzinki.Dialogs.SearchHelpers.SearchFlags;
 
@@ -17,11 +18,13 @@ public class Repository
     // obiekt TabelaDao tak jak w klasie BazaDanych.
     private TabelaDao tabelaDao;
     private LiveData<List<Item>> allItems;
+    //private Context applicationContext;
 
     public Repository(Application application)
     {
         /* inicjalizujemy obiekt bazy danych ()tworzymy bazę danych*/
         BazaDanych db = BazaDanych.getDatabase(application);
+        //applicationContext = application.getApplicationContext();
 
         /* przypisujemy do wywoływań bazę danych */
         tabelaDao = db.tabelaDao();
@@ -52,14 +55,14 @@ public class Repository
     /**
      * query zwracające LiveData<List<Item>> lub Flowable są same z siebie wykonywane asynchronicznie
      * dlatego nie ma potrzeby umieszczać ich w nowym wątku.
-     * @param chosenDate
+     * @param chosenYear
      * @param chosenHours
      * @param chosenMinutes
      * @param flags
      * @return
      */
     @NonNull
-    public LiveData<List<Item>> loadItemsWhere(String chosenDate, int chosenHours, int chosenMinutes, SearchFlags flags)
+    public LiveData<List<Item>> loadItemsWhere(int chosenYear, int chosenMonth, int chosenDay, int chosenHours, int chosenMinutes, SearchFlags flags)
     {
         switch (flags.getSorting())
         {
@@ -70,9 +73,25 @@ public class Repository
                         switch (flags.getLength())
                         {
                             case LONGER:
-                                return tabelaDao.loadItemsWhereOvertimesAreLongerThanAndDateIsBeforeDesc(chosenHours, chosenMinutes, chosenDate);
+                                switch(flags.getType())
+                                {
+                                    case ALL:
+                                        return tabelaDao.loadAllItemsWhereOvertimesAreLongerThanAndDateIsBeforeDesc(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                    case DONE:
+                                        return tabelaDao.loadDoneItemsWhereOvertimesAreLongerThanAndDateIsBeforeDesc(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                    case TAKEN:
+                                        return tabelaDao.loadTakenItemsWhereOvertimesAreLongerThanAndDateIsBeforeDesc(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                }
                             case SHORTER:
-                                return tabelaDao.loadItemsWhereOvertimesAreShorterThanAndDateIsBeforeDesc(chosenHours, chosenMinutes, chosenDate);
+                                switch(flags.getType())
+                                {
+                                    case ALL:
+                                        return tabelaDao.loadAllItemsWhereOvertimesAreShorterThanAndDateIsBeforeDesc(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                    case DONE:
+                                        return tabelaDao.loadDoneItemsWhereOvertimesAreShorterThanAndDateIsBeforeDesc(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                    case TAKEN:
+                                        return tabelaDao.loadTakenItemsWhereOvertimesAreShorterThanAndDateIsBeforeDesc(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                }
                             default:
                                 return null;
                         }
@@ -80,9 +99,25 @@ public class Repository
                         switch (flags.getLength())
                         {
                             case LONGER:
-                                return tabelaDao.loadItemsWhereOvertimesAreLongerThanAndDateIsAfterDesc(chosenHours, chosenMinutes, chosenDate);
+                                switch(flags.getType())
+                                {
+                                    case ALL:
+                                        return tabelaDao.loadAllItemsWhereOvertimesAreLongerThanAndDateIsAfterDesc(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                    case DONE:
+                                        return tabelaDao.loadDoneItemsWhereOvertimesAreLongerThanAndDateIsAfterDesc(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                    case TAKEN:
+                                        return tabelaDao.loadTakenItemsWhereOvertimesAreLongerThanAndDateIsAfterDesc(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                }
                             case SHORTER:
-                                return tabelaDao.loadItemsWhereOvertimesAreShorterThanAndDateIsAfterDesc(chosenHours, chosenMinutes, chosenDate);
+                                switch(flags.getType())
+                                {
+                                    case ALL:
+                                        return tabelaDao.loadAllItemsWhereOvertimesAreShorterThanAndDateIsAfterDesc(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                    case DONE:
+                                        return tabelaDao.loadDoneItemsWhereOvertimesAreShorterThanAndDateIsAfterDesc(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                    case TAKEN:
+                                        return tabelaDao.loadTakenItemsWhereOvertimesAreShorterThanAndDateIsAfterDesc(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                }
                             default:
                                 return null;
                         }
@@ -96,9 +131,25 @@ public class Repository
                         switch (flags.getLength())
                         {
                             case LONGER:
-                                return tabelaDao.loadItemsWhereOvertimesAreLongerThanAndDateIsBeforeASC(chosenHours, chosenMinutes, chosenDate);
+                                switch(flags.getType())
+                                {
+                                    case ALL:
+                                        return tabelaDao.loadAllItemsWhereOvertimesAreLongerThanAndDateIsBeforeASC(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                    case DONE:
+                                        return tabelaDao.loadDoneItemsWhereOvertimesAreLongerThanAndDateIsBeforeASC(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                    case TAKEN:
+                                        return tabelaDao.loadTakenItemsWhereOvertimesAreLongerThanAndDateIsBeforeASC(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                }
                             case SHORTER:
-                                return tabelaDao.loadItemsWhereOvertimesAreShorterThanAndDateIsBeforeASC(chosenHours, chosenMinutes, chosenDate);
+                                switch(flags.getType())
+                                {
+                                    case ALL:
+                                        return tabelaDao.loadAllItemsWhereOvertimesAreShorterThanAndDateIsBeforeASC(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                    case DONE:
+                                        return tabelaDao.loadDoneItemsWhereOvertimesAreShorterThanAndDateIsBeforeASC(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                    case TAKEN:
+                                        return tabelaDao.loadTakenItemsWhereOvertimesAreShorterThanAndDateIsBeforeASC(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                }
                             default:
                                 return null;
                         }
@@ -106,9 +157,25 @@ public class Repository
                         switch (flags.getLength())
                         {
                             case LONGER:
-                                return tabelaDao.loadItemsWhereOvertimesAreLongerThanAndDateDateIsAfterAsc(chosenHours, chosenMinutes, chosenDate);
+                                switch(flags.getType())
+                                {
+                                    case ALL:
+                                        return tabelaDao.loadAllItemsWhereOvertimesAreLongerThanAndDateDateIsAfterAsc(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                    case DONE:
+                                        return tabelaDao.loadDoneItemsWhereOvertimesAreLongerThanAndDateDateIsAfterAsc(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                    case TAKEN:
+                                        return tabelaDao.loadTakenItemsWhereOvertimesAreLongerThanAndDateDateIsAfterAsc(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                }
                             case SHORTER:
-                                return tabelaDao.loadItemsWhereOvertimesAreShorterThanAndDateIsAfterASC(chosenHours, chosenMinutes, chosenDate);
+                                switch(flags.getType())
+                                {
+                                    case ALL:
+                                        return tabelaDao.loadAllItemsWhereOvertimesAreShorterThanAndDateIsAfterASC(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                    case DONE:
+                                        return tabelaDao.loadDoneItemsWhereOvertimesAreShorterThanAndDateIsAfterASC(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                    case TAKEN:
+                                        return tabelaDao.loadTakenItemsWhereOvertimesAreShorterThanAndDateIsAfterASC(chosenYear, chosenMonth, chosenDay, chosenHours, chosenMinutes);
+                                }
                             default:
                                 return null;
                         }
@@ -220,28 +287,25 @@ public class Repository
         }
     }
 
-    public void updateDayOfOvertime(String dayOfOvertime, int day, int id)
+    public void updateDayOfOvertime(int newYear, int newMonth, int newDay, int dayOfWeek, int id)
     {
-        new updateDateOfOvertimeAsyncTask(tabelaDao, day, id).execute(dayOfOvertime);
+        new updateDateOfOvertimeAsyncTask(tabelaDao).execute(newYear, newMonth, newDay, dayOfWeek, id);
     }
 
-    private static class updateDateOfOvertimeAsyncTask extends AsyncTask<String, Void, Void>
+    private static class updateDateOfOvertimeAsyncTask extends AsyncTask<Integer, Void, Void>
     {
         private TabelaDao tabelaDao;
-        private int id;
-        private int day;
 
-        updateDateOfOvertimeAsyncTask(TabelaDao tab, int day, int id)
+        updateDateOfOvertimeAsyncTask(TabelaDao tab)
         {
             tabelaDao = tab;
-            this.day = day;
-            this.id = id;
         }
 
         @Override
-        protected Void doInBackground(String... strings)
+        protected Void doInBackground(Integer... intTable)
         {
-            tabelaDao.updateDateOfOvertime(strings[0], day, id);
+            tabelaDao.deleteItemeWhereOvertimeDateIs(intTable[0], intTable[1], intTable[2]);
+            tabelaDao.updateDateOfOvertime(intTable[0], intTable[1], intTable[2], intTable[3], intTable[4]);
             return null;
         }
     }
@@ -289,6 +353,74 @@ public class Repository
         {
             tabelaDao.updateNote(notes[0], id);
             return null;
+        }
+    }
+
+    public int numberOfMatchingItems(int year, int month, int day)
+    {
+        try
+        {
+            return new numberOfMatchingItemsAsyncTask(tabelaDao).execute(year, month, day).get();
+        }
+        catch (ExecutionException e)
+        {
+            e.printStackTrace();
+            return -1;
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    private static class numberOfMatchingItemsAsyncTask extends AsyncTask<Integer, Void , Integer>
+    {
+        private TabelaDao tabelaDao;
+
+        numberOfMatchingItemsAsyncTask(TabelaDao tabela)
+        {
+            tabelaDao = tabela;
+        }
+
+        @Override
+        protected Integer doInBackground(Integer... integers)
+        {
+            return tabelaDao.numberOfMatchingItems(integers[0], integers[1], integers[2]);
+        }
+    }
+
+    public int getUIdFromDate(int year, int month, int day)
+    {
+        try
+        {
+            return new getUIdFromDateAsyncTask(tabelaDao).execute(year, month, day).get();
+        }
+        catch (ExecutionException e)
+        {
+            e.printStackTrace();
+            return -1;
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    private static class getUIdFromDateAsyncTask extends AsyncTask<Integer, Void , Integer>
+    {
+        private TabelaDao tabelaDao;
+
+        getUIdFromDateAsyncTask(TabelaDao tabela)
+        {
+            tabelaDao = tabela;
+        }
+
+        @Override
+        protected Integer doInBackground(Integer... integers)
+        {
+            return tabelaDao.getUIdFromDate(integers[0], integers[1], integers[2]);
         }
     }
 }

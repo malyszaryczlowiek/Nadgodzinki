@@ -6,9 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-
-import java.time.LocalDate;
-import java.util.Calendar;
+import android.icu.util.Calendar;
 
 import androidx.preference.PreferenceManager;
 
@@ -81,17 +79,22 @@ public class BootCompletedBroadcastReceiver extends BroadcastReceiver
                     break;
             }
             int chosenDay = Integer.valueOf(mSharedPreferences.getString("buckupDay", "6"));//getInt("buckupDay", 6);
-            long today = LocalDate.now().toEpochDay() * 1000 * 3600 * 24;
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(today);
-            calendar.add(Calendar.DAY_OF_WEEK, Math.abs(calendar.get(Calendar.DAY_OF_WEEK) - chosenDay));
-            calendar.add(Calendar.HOUR_OF_DAY, 18);
+            Calendar calendar = android.icu.util.Calendar.getInstance();
+            calendar.set(android.icu.util.Calendar.HOUR,0);
+            calendar.set(android.icu.util.Calendar.MINUTE, 0);
+            calendar.add(android.icu.util.Calendar.DAY_OF_WEEK, Math.abs(calendar.get(android.icu.util.Calendar.DAY_OF_WEEK) - chosenDay));
+            calendar.add(android.icu.util.Calendar.HOUR_OF_DAY, 19);
+            calendar.add(android.icu.util.Calendar.MINUTE, 0);
 
             mAlarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-            Intent intent = new Intent(context.getApplicationContext(), BuckUpAlarmBroadcastReceiver.class);
-            mPendingIntent = PendingIntent.getBroadcast(context.getApplicationContext(), pendingIntentRequestCode,
-                    intent, PendingIntent.FLAG_UPDATE_CURRENT); // TODO ewentualnie zamienić na cancell current
-            mAlarm.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), intervalMillis, mPendingIntent);
+            Intent intent = new Intent(context.getApplicationContext(),
+                    BuckUpAlarmBroadcastReceiver.class);
+            mPendingIntent = PendingIntent.getBroadcast(context.getApplicationContext(),
+                    pendingIntentRequestCode,
+                    intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            // TODO ewentualnie zamienić na cancell current
+            mAlarm.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
+                    intervalMillis, mPendingIntent);
         }
     }
 }

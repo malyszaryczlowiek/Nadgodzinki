@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 
-import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -66,10 +65,23 @@ public class BuckUpFile
                 dayOfWeek.appendChild(dayOfWeekText);
                 item.appendChild(dayOfWeek);
 
-                Element dateOfOvertime = doc.createElement("DateOfOvertime");
-                Text dateOfOvertimeText = doc.createTextNode(i.getDateOfOvertime());
-                dateOfOvertime.appendChild(dateOfOvertimeText);
-                item.appendChild(dateOfOvertime);
+                Element yearOfOvertime = doc.createElement("YearOfOvertime");
+                String yearOfOvertimeString = Integer.toString(i.getYearOfOvertime());
+                Text yearOfOvertimeText = doc.createTextNode(yearOfOvertimeString);
+                yearOfOvertime.appendChild(yearOfOvertimeText);
+                item.appendChild(yearOfOvertime);
+
+                Element monthOfOvertime = doc.createElement("MonthOfOvertime");
+                String monthOfOvertimeString = Integer.toString(i.getMonthOfOvertime());
+                Text monthOfOvertimeText = doc.createTextNode(monthOfOvertimeString);
+                monthOfOvertime.appendChild(monthOfOvertimeText);
+                item.appendChild(monthOfOvertime);
+
+                Element dayOfOvertime = doc.createElement("DayOfOvertime");
+                String dayOfOvertimeString = Integer.toString(i.getDayOfOvertime());
+                Text dayOfOvertimeText = doc.createTextNode(dayOfOvertimeString);
+                dayOfOvertime.appendChild(dayOfOvertimeText);
+                item.appendChild(dayOfOvertime);
 
                 Element godzina = doc.createElement("Hours");
                 String godzinaString = Integer.toString(i.getNumberOfHours());

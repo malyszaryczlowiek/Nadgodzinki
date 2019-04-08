@@ -8,16 +8,19 @@ public class SearchFlags
     private Sorting sorting;
     private Cutting cutting;
     private Length length;
+    private Type type;
 
     public enum Sorting {ASC, DSC};
     public enum Cutting {BEFORE, AFTER};
     public enum Length {LONGER, SHORTER};
+    public enum Type {ALL, DONE, TAKEN};
 
     private SearchFlags()
     {
         sorting = Sorting.DSC;
         cutting = Cutting.BEFORE;
         length = Length.LONGER;
+        type = Type.ALL;
     }
 
     @NotNull
@@ -42,6 +45,11 @@ public class SearchFlags
         return length;
     }
 
+    public Type getType()
+    {
+        return type;
+    }
+
     public void setSorting(Sorting sorting)
     {
         this.sorting = sorting;
@@ -55,6 +63,11 @@ public class SearchFlags
     public void setLength(Length length)
     {
         this.length = length;
+    }
+
+    public void setType(Type type)
+    {
+        this.type = type;
     }
 }
 

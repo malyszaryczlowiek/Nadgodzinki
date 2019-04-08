@@ -14,11 +14,11 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.icu.util.Calendar;
 
 import com.example.sudouser.nadgodzinki.R;
 import com.example.sudouser.nadgodzinki.db.Item;
 
-import java.util.Calendar;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -40,7 +40,6 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
     private String oldNote;
     private int oldHoursValue;
     private int oldMinutesValue;
-
 
 
     class ItemsViewHolder extends RecyclerView.ViewHolder
@@ -138,7 +137,6 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
             }
         });
 
-        // tutaj należy przypisać
         if (mItems != null)
         {
             Item item = mItems.get(position);
@@ -146,14 +144,14 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
                 holder.layout.setBackgroundColor(context.getColor(R.color.positiveColorOvertime)); // light green
             else
                 holder.layout.setBackgroundColor(context.getColor(R.color.negativeColorOvertime)); // light red
-            holder.dateRecycleView.setText(item.getDateOfOvertime());
-            holder.dayRecycleView.setText(daysList[item.getDayOfWeek() - 1]);
+            String date = item.getDayOfOvertime()+"-"
+                    +item.getMonthOfOvertime()+"-"
+                    +item.getYearOfOvertime();
+            holder.dateRecycleView.setText(date);
+            holder.dayRecycleView.setText(daysList[ (item.getDayOfWeek() +5) % 7]);
             holder.hoursRecycleView.setHint(String.valueOf(item.getNumberOfHours()));
             holder.minutesRecycleView.setHint(String.valueOf(item.getNumberOfMinutes()));
             holder.notesAboutOvertime.setText(item.getNote());
-
-            // ustawiamy kursor na końcu tego editText
-            //
 
             holder.deleteItemButton.setOnClickListener(new View.OnClickListener()
             {
@@ -183,7 +181,6 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
                             // dayOfMonth musi być + 1 bo Calendar.MONTH jest od 0-11
                             // a LocalDate używa od 1 do 12.
                             listener.changeDateOfOvertime(year, month + 1, dayOfMonth, item.getUid());
-                            Toast.makeText(context, R.string.operation_saved, Toast.LENGTH_SHORT).show();
                         }
                     }, year, month, day)
                             .show();
@@ -336,11 +333,9 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
     public interface ItemListAdapterListener
     {
         void deleteItem(Item item);
-        void changeDateOfOvertime(int chosenYear, int chosenMonth, int chosenDayOfWeek, int id);
+        void changeDateOfOvertime(int chosenYear, int chosenMonth, int chosenDay, int id);
         void changeNumberOfMinutesAndHours(int hours, int minutes, int id);
         void saveNote(String note, int id);
-        //void requestFocusOn();
-        // jeśli focusable true nie zadziąła to trezeba spróbować na spinerze z sortownaiem
     }
 
 

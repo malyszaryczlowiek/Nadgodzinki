@@ -46,4 +46,28 @@
         <item>Dłuższe niż</item>
         <item>Krótsze niż</item>
     </string-array>
+
+    <string-array name="spinner_overtime_type">
+        <item>Wyrobione i Odebrane</item>
+        <item>Wyrobione</item>
+        <item>Odebrane</item>
+    </string-array>
+
 </resources>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -18,6 +18,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.icu.util.Calendar;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -36,6 +37,7 @@ import com.example.sudouser.nadgodzinki.BuckUp.XmlParser;
 import com.example.sudouser.nadgodzinki.Dialogs.SearchFilterItemsDialog;
 import com.example.sudouser.nadgodzinki.Dialogs.SearchHelpers.SearchFlags;
 import com.example.sudouser.nadgodzinki.RecyclerViewMain.ItemListAdapter;
+import com.example.sudouser.nadgodzinki.ViewModels.ItemViewModel;
 import com.example.sudouser.nadgodzinki.db.Item;
 
 import java.io.File;
@@ -71,10 +73,9 @@ public class ListOfOvertimesActivity
 
         mItemViewModel = ViewModelProviders.of(this).get(ItemViewModel.class);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        //mItemViewModel.getAllItems().observe(this, items -> listOfItems = items );
 
         RecyclerView recyclerView = findViewById(R.id.allItemsTable);
-        adapter = new ItemListAdapter(this); // TODO uwaga na znacznik final, może chyba powodować kłopoty
+        adapter = new ItemListAdapter(this);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         findViewById(R.id.search_and_filter_button).requestFocus();
@@ -100,6 +101,17 @@ public class ListOfOvertimesActivity
                 searcher.show(getSupportFragmentManager(), "search_filter_tag");
             }
         });
+
+        Button clearSearch = findViewById(R.id.clear_search_criteria);
+        clearSearch.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                setNewObserver();
+            }
+        });
+
 
 
         if (getIntent().getBooleanExtra("fromNotifier", false))
@@ -341,7 +353,7 @@ public class ListOfOvertimesActivity
                                 Toast.makeText(this, "ścieżki są te same", Toast.LENGTH_LONG).show();
                         }
                     }
-                    catch (Exception e)
+                    catch (NullPointerException e)
                     {
                         // Log.e("TAG", "getRealPathFromURI Exception : " + e.toString());
                         Toast.makeText(this, "Wywaliło wyjątek " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -477,7 +489,7 @@ public class ListOfOvertimesActivity
                 .setPositiveButton(R.string.clear, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id)
                     {
-                        Integer expected = mItemViewModel.getAllItems().getValue().size(); // TODO może produkować nullPointerException
+                        Integer expected = mItemViewModel.getAllItems().getValue().size();
                         Integer result = mItemViewModel.clearDatabase();
                         if (result.equals(expected))
                         {
@@ -528,33 +540,76 @@ public class ListOfOvertimesActivity
     }
 
     @Override
-    public void changeDateOfOvertime(int chosenYear, int chosenMonth, int chosenDayOfWeek, int id)
+    public void changeDateOfOvertime(int chosenYear, int chosenMonth, int chosenDay, int id)
     {
         //
-        LocalDate date = LocalDate.of(chosenYear, chosenMonth, chosenDayOfWeek);
+        LocalDate date = LocalDate.of(chosenYear, chosenMonth, chosenDay);
         LocalDate today = LocalDate.now();
-
-        if (!date.isAfter(today))
+        // sprawdzanie czy nie chcemy zmienić wpisu na samego siebie. tzn czy uid się nie pokrywają
+        int uidPreviousItem = mItemViewModel.getUIdfromDate(chosenYear, chosenMonth, chosenDay);
+        if (id != uidPreviousItem)
         {
-            // chosenMonth musi być od 1-12
-            int dayOfWeek = date.getDayOfWeek().getValue();
-            mItemViewModel.updateDateOfOvertime(date.toString(), dayOfWeek, id);
+            if (!date.isAfter(today))
+            {
+                // chosenMonth musi być od 1-12
+                Calendar calendar = Calendar.getInstance();
+                calendar.clear();
+                calendar.set(Calendar.YEAR, chosenYear);
+                calendar.set(Calendar.MONTH, chosenMonth-1);
+                calendar.set(Calendar.DAY_OF_MONTH, chosenDay);
+                int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+
+                int existInDB = mItemViewModel.checkNumberOfItemsWithDate(chosenYear, chosenMonth, chosenDay);
+                if (existInDB > 0 )
+                {
+                    // TODO jeśli jest więcej niż 0 to znaczy że jest już w bazie wpis o takiej nazwie
+                    // TODO i dlatego trzeba zapytać czy należy go kasować, stąd tworzymy dialog i
+                    // TODO pytamy jeśli użytkownik kllika zamień to wpis zostanie skasowany a bierzący będzie miał jego datę
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle(R.string.replace_item)
+                            .setMessage(R.string.replace_item_explenation)
+                            .setPositiveButton(R.string.replace, new DialogInterface.OnClickListener()
+                            {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which)
+                                {
+                                    mItemViewModel.updateDateOfOvertime(chosenYear, chosenMonth, chosenDay, dayOfWeek, id);
+                                }
+                            })
+                            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener()
+                            {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which)
+                                {
+                                    Toast.makeText(thisContext, R.string.operation_cancelled, Toast.LENGTH_SHORT).show();
+                                }
+                            })
+                            .show();
+                }
+                else if (existInDB == -1)
+                    Toast.makeText(this, "Something has gone wrong.", Toast.LENGTH_SHORT).show();
+                else
+                    mItemViewModel.updateDateOfOvertime(chosenYear, chosenMonth, chosenDay, dayOfWeek, id);
+            }
+            else
+            {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(R.string.incorrect_date)
+                        .setMessage(R.string.cannot_setup_future_date)
+                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener()
+                        {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which)
+                            {
+
+                            }
+                        })
+                        .show();
+            }
         }
         else
-        {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(R.string.incorrect_date)
-                    .setMessage(R.string.cannot_setup_future_date)
-                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener()
-                    {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which)
-                        {
-
-                        }
-                    })
-                    .show();
-        }
+            Toast.makeText(this, R.string.nothing_to_change, Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -567,7 +622,6 @@ public class ListOfOvertimesActivity
     public void changeNumberOfMinutesAndHours(int hours, int minutes, int id)
     {
         mItemViewModel.updateNumberOfMinutesAndHours(hours, minutes, id);
-        //final int oldMinutesValue = Integer.parseInt(holder.minutesRecycleView.getText().toString());
         findViewById(R.id.search_and_filter_button).requestFocus();
         //getWindow().setSoftInputMode(SOFT_INPUT_STATE_HIDDEN);
         /*
@@ -595,12 +649,33 @@ public class ListOfOvertimesActivity
 
     }
 
+    /**
+     * Metoda jest callbackiem, który jest wywoływany gdy użytkownik zatwierdzi w dialogu
+     * kryteria wyszukiwania (kryteria są argumentami tej metody).
+     * Wewnątrz metody ładujemy wyniki wyszukiwania w bazie i zapisujemy je w liveView
+     * selecteditems w ItemViewModel następnie sprawdzamy czy dla tego wyszukiwania
+     * istnieje juz jakiś observer, jeśli tak to kasujemy go i tworzymy nowy. Po czym wewnątrz
+     * observera dokonujemy przypisania znalezionych danych do recycleView. Teraz przy każdej
+     * kolejnej zmianie w bazie danych dane te będą automatycznie aktualizowane w recycleView
+     * W przypadku gdy następi obrócenie telefonu, ten observer jest kasowany, ale w onCreate()
+     * tworzony jest ponownie kolejny tylko że tym razem selectedItems w ItemViewModel nie jest
+     * już null i dlatego observer jest skierowany na selectedItems.
+     * @param chosenHours godziny
+     * @param chosenMinutes minuty
+     * @param flags flaga określająca kryteria wyszukiwawcze.
+     */
     @Override
-    public void manageChosenCriteria(String chosenDate, int chosenHours, int chosenMinutes, SearchFlags flags)
+    public void manageChosenCriteria(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime,
+                                     int chosenHours, int chosenMinutes, SearchFlags flags)
     {
-        mItemViewModel.loadItemsWhere(chosenDate, chosenHours, chosenMinutes, flags);
+        mItemViewModel.loadItemsWhere(
+                yearOfOvertime, monthOfOvertime, dayOfOvertime, chosenHours, chosenMinutes, flags);
+
         if(mItemViewModel.getSelectedItems().hasActiveObservers())
             mItemViewModel.getSelectedItems().removeObservers(this);
+        if(mItemViewModel.getAllItems().hasActiveObservers())
+            mItemViewModel.getAllItems().removeObservers(this);
+
         mItemViewModel.getSelectedItems().observe(this, new Observer<List<Item>>()
         {
             @Override
@@ -610,7 +685,27 @@ public class ListOfOvertimesActivity
             }
         });
     }
+
+
+    private void setNewObserver()
+    {
+        if(mItemViewModel.getSelectedItems() != null && mItemViewModel.getSelectedItems().hasObservers())
+            mItemViewModel.getSelectedItems().removeObservers(this);
+        if(mItemViewModel.getAllItems().hasActiveObservers())
+            mItemViewModel.getAllItems().removeObservers(this);
+        mItemViewModel.clearSearchCriteria();
+        mItemViewModel.getAllItems().observe(this, new Observer<List<Item>>()
+        {
+            @Override
+            public void onChanged(List<Item> items)
+            {
+                adapter.setItems(items);
+            }
+        });
+    }
 }
+
+
 
 
 

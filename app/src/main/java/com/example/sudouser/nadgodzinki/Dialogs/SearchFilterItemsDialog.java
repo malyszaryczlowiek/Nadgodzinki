@@ -11,16 +11,17 @@ import android.widget.ArrayAdapter;
 import android.widget.CalendarView;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.icu.util.Calendar;
 
 import com.example.sudouser.nadgodzinki.Dialogs.SearchHelpers.SearchFlags;
 import com.example.sudouser.nadgodzinki.R;
-
-import java.time.LocalDate;
-import java.util.Calendar;
+import com.example.sudouser.nadgodzinki.ViewModels.SearchFilterItemsDialogViewModel;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatDialogFragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 
 public class SearchFilterItemsDialog extends AppCompatDialogFragment
 {
@@ -34,6 +35,9 @@ public class SearchFilterItemsDialog extends AppCompatDialogFragment
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState)
     {
+        SearchFilterItemsDialogViewModel mViewModel;
+        mViewModel = ViewModelProviders.of(getActivity()).get(SearchFilterItemsDialogViewModel.class);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater =  getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.search_filter_items_dialog, null);
@@ -46,7 +50,11 @@ public class SearchFilterItemsDialog extends AppCompatDialogFragment
                     public void onClick(DialogInterface dialog, int which)
                     {
                         long chosenDate = calendarView.getDate();
-                        LocalDate chosenDay = LocalDate.ofEpochDay(chosenDate / ((long) 1000 * 3600 * 24));
+                        Calendar calendar = Calendar.getInstance();
+                        calendar.setTimeInMillis(chosenDate);
+                        int year = calendar.get(Calendar.YEAR);
+                        int month = calendar.get(Calendar.MONTH) + 1;
+                        int day = calendar.get(Calendar.DAY_OF_MONTH);
 
                         String hours = spinnerEditTextHours.getText().toString();
                         String minutes = spinnerEditTextMinutes.getText().toString();
@@ -59,7 +67,7 @@ public class SearchFilterItemsDialog extends AppCompatDialogFragment
                             if (minutes.equals(""))
                                 minutes = "0";
                             int minutesInt = Integer.parseInt(minutes);
-                            listener.manageChosenCriteria(chosenDay.toString(), hoursInt, minutesInt, flags);
+                            listener.manageChosenCriteria(year, month, day, hoursInt, minutesInt, flags);
                         }
                         catch (NumberFormatException e)
                         {
@@ -82,6 +90,28 @@ public class SearchFilterItemsDialog extends AppCompatDialogFragment
         Calendar calendar = Calendar.getInstance();
         long todayLong = calendar.getTimeInMillis();
         calendarView.setMaxDate(todayLong);
+        calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener()
+        {
+            @Override
+            public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth)
+            {
+                Calendar cal = Calendar.getInstance();
+                cal.set(Calendar.YEAR, year);
+                cal.set(Calendar.MONTH, month);
+                cal.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                mViewModel.setSetDate(cal);
+            }
+        });
+
+        mViewModel.getSetDate().observe(getActivity(), new Observer<Calendar>()
+        {
+            @Override
+            public void onChanged(Calendar calendar)
+            {
+                long dataLong = calendar.getTimeInMillis();
+                calendarView.setDate(dataLong);
+            }
+        });
 
         Spinner spinnerSortingDate = view.findViewById(R.id.spinnerSortingDate);
         ArrayAdapter<CharSequence> adaprerSpinerSorting = ArrayAdapter.createFromResource(
@@ -167,6 +197,37 @@ public class SearchFilterItemsDialog extends AppCompatDialogFragment
             }
         });
 
+        Spinner spinnerOvertimeType = view.findViewById(R.id.spinnerOvertimeType);
+        ArrayAdapter<CharSequence> adaprerSpinerOvertimeType = ArrayAdapter.createFromResource(
+                getActivity(), R.array.spinner_overtime_type, android.R.layout.simple_spinner_item);
+        adaprerSpinerOvertimeType.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerOvertimeType.setAdapter(adaprerSpinerOvertimeType);
+        spinnerOvertimeType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+        {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id)
+            {
+                switch (position)
+                {
+                    case 0:
+                        flags.setType(SearchFlags.Type.ALL);
+                        break;
+                    case 1:
+                        flags.setType(SearchFlags.Type.DONE);
+                        break;
+                    case 2:
+                        flags.setType(SearchFlags.Type.TAKEN);
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent)
+            {
+
+            }
+        });
+
         spinnerEditTextHours = view.findViewById(R.id.spinnerEditTextHours);
         spinnerEditTextMinutes = view.findViewById(R.id.spinnerEditTextMinutes);
 
@@ -190,7 +251,7 @@ public class SearchFilterItemsDialog extends AppCompatDialogFragment
 
     public interface ChosenSearchCriteriaListener
     {
-        void manageChosenCriteria(String chosenDate, int chosenHours, int chosenMinutes, SearchFlags flags);
+        void manageChosenCriteria(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int chosenHours, int chosenMinutes, SearchFlags flags);
     }
 }
 
