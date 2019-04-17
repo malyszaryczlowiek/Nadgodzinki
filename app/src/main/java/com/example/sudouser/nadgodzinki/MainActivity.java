@@ -1,5 +1,6 @@
 package com.example.sudouser.nadgodzinki;
 
+import android.os.Bundle;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -7,7 +8,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.icu.util.Calendar;
-import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,6 +21,12 @@ import com.example.sudouser.nadgodzinki.Settings.ListOfCategoriesActivity;
 import com.example.sudouser.nadgodzinki.ViewModels.ItemViewModel;
 import com.example.sudouser.nadgodzinki.db.Item;
 
+import com.google.android.material.navigation.NavigationView;
+
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.widget.Toolbar;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,8 +34,12 @@ import androidx.lifecycle.*;
 import androidx.preference.PreferenceManager;
 
 
-public class MainActivity extends AppCompatActivity implements NoteDialog.NoteDialogListener
+
+public class MainActivity extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener,
+        NoteDialog.NoteDialogListener
 {
+
     private ItemViewModel mItemViewModel;
     private SharedPreferences mSharedPreferences;
     private SharedPreferences.OnSharedPreferenceChangeListener listener;
@@ -42,24 +52,44 @@ public class MainActivity extends AppCompatActivity implements NoteDialog.NoteDi
     private int monthOfOvertime;
     private int dayOfOvertime;
     private String todayDate;
-    int dayOfWeek;
-    int minutesInt;
-    int hoursInt;
+    private int dayOfWeek;
+    private int minutesInt;
+    private int hoursInt;
 
-    /**
-     * Jest to pierwsza z metod callback - jest ona wykonywana tylko raz w momencie gdy tworzona jest
-     * activity.
-     * @param savedInstanceState to jest parametr, który przechowuje poprzednio zapisany stan aktywności
-     *                           czyli w momencie gdy, zmieniamy ułożenie telefonu na landscape to,
-     *                           w tę zmienną wpisywane są wartości wszelkich parametrów gdy activity jest
-     *                           w pozycji portrait. jeśli aktywność nie była nigdy wcześniej tworzona
-     *                           to obiekt ten ma wartość null.
-     */
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main_with_drawer);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.mainActivityToolbar);
+        setSupportActionBar(toolbar);
+
+        /*
+        // skasowałem floating
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
+         */
+
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        // TODO wklejam zawartość mojego MainActivity
         // TODO zrobić najpierw nowy wątek dla mItemViewModel'a to nam potwierdzi lub obali koncepcję
         // czy można w ten sposób uruchamiać Activity
         mItemViewModel = ViewModelProviders.of(this).get(ItemViewModel.class);
@@ -119,6 +149,126 @@ public class MainActivity extends AppCompatActivity implements NoteDialog.NoteDi
     }
 
     /**
+     * metoda wyświetlająca menu
+     * @param menu
+     * @return
+     */
+    /*
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main_in_navigation_drawer, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        switch(item.getItemId())
+        {
+            case R.id.menuItemListOfOvertimes:
+                showListOfOvertimes();
+                return true;
+            case R.id.menuItemStatistics:
+                showStatistics();
+                return true;
+            case R.id.menuItemSettings:
+                showSettings();
+                return true;
+            case R.id.menuItemTest:
+                showTest();
+                return true;
+            case R.id.showNotes:
+                showNotesActivity();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+     */
+
+
+
+    //********************************************
+    // Metody używane w DrawerLayout.
+    //********************************************
+
+    /**
+     *
+     */
+    @Override
+    public void onBackPressed()
+    {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START))
+        {
+            drawer.closeDrawer(GravityCompat.START);
+        }
+        else
+        {
+            super.onBackPressed();
+        }
+    }
+
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item)
+    {
+        // Handle navigation view item clicks here.
+
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        switch(item.getItemId())
+        {
+            case R.id.menuItemListOfOvertimes:
+                showListOfOvertimes();
+                drawer.closeDrawer(GravityCompat.START);
+                return true;
+            case R.id.menuItemStatistics:
+                showStatistics();
+                drawer.closeDrawer(GravityCompat.START);
+                return true;
+            case R.id.menuItemSettings:
+                showSettings();
+                drawer.closeDrawer(GravityCompat.START);
+                return true;
+            case R.id.menuItemTest:
+                showTest();
+                drawer.closeDrawer(GravityCompat.START);
+                return true;
+            case R.id.showNotes:
+                showNotesActivity();
+                drawer.closeDrawer(GravityCompat.START);
+                return true;
+            default:
+                return true;
+        }
+    }
+
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy()
+    {
+        mSharedPreferences.unregisterOnSharedPreferenceChangeListener(listener);
+        super.onDestroy();
+    }
+
+
+
+    /**
      * Metoda generująca nam alarm Manager, który służy do tego aby sustem wysyłał broadCast do naszej aplikacji
      * dokładniej do BuckUpAlarmBroadcastReceiver'a aby ten mógł wywołać notyfikację. Notyfikacja z kolei
      * wywołuje Intent StatsInfoActivity w jednoczesnym wywołaniem metody makeBuckup()
@@ -168,55 +318,6 @@ public class MainActivity extends AppCompatActivity implements NoteDialog.NoteDi
             mAlarm.cancel(mPendingIntent);
     }
 
-    @Override
-    protected void onResume()
-    {
-        super.onResume();
-    }
-
-    @Override
-    protected void onPause()
-    {
-        super.onPause();
-    }
-
-    @Override
-    protected void onDestroy()
-    {
-        mSharedPreferences.unregisterOnSharedPreferenceChangeListener(listener);
-        super.onDestroy();
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item)
-    {
-        switch(item.getItemId())
-        {
-            case R.id.menuItemListOfOvertimes:
-                showListOfOvertimes();
-                return true;
-            case R.id.menuItemStatistics:
-                showStatistics();
-                return true;
-            case R.id.menuItemSettings:
-                showSettings();
-                return true;
-            case R.id.menuItemTest:
-                showTest();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
 
     /**
      * FUnkcja wywoływana po naciśnięciu przycisku dodaj. Dalej jest opisane co po kolei się dzieje
@@ -263,11 +364,17 @@ public class MainActivity extends AppCompatActivity implements NoteDialog.NoteDi
         startActivity(intent);
     }
 
+    private void showNotesActivity()
+    {
+        Intent intent = new Intent(this, ShowNotesActivity.class);
+        startActivity(intent);
+    }
+
 
 
     /**
      * metoda dodaje lub odejmuje item do bazy danych, w zależności od parametru addidtion
-      * @param addition jeśli parametr ma wartość true to wartości są dodatnie jeśli ma false to znaczy
+     * @param addition jeśli parametr ma wartość true to wartości są dodatnie jeśli ma false to znaczy
      *                 . że odejmujemy sobie nadgodzinki
      */
     private void insertTimeChecker(boolean addition)
@@ -350,36 +457,10 @@ public class MainActivity extends AppCompatActivity implements NoteDialog.NoteDi
     public void applyChanges(String note, boolean show)
     {
         mSharedPreferences.edit().putBoolean("askAboutNote", !show).apply(); //zaprzeczamy, że chemy pokazywać ponownie to okno
-        mItemViewModel.insert(new Item(0, todayDate, dayOfWeek, yearOfOvertime, monthOfOvertime, dayOfOvertime, hoursInt, minutesInt, ""));
+        mItemViewModel.insert(new Item(0, todayDate, dayOfWeek, yearOfOvertime, monthOfOvertime, dayOfOvertime, hoursInt, minutesInt, note));
         Toast.makeText(this, getText(R.string.operation_saved), Toast.LENGTH_SHORT).show();
     }
+
+
+
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

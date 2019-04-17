@@ -1,8 +1,10 @@
 package com.example.sudouser.nadgodzinki;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
@@ -23,10 +25,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -48,6 +54,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+
+// android:theme="@style/AppTheme.AppBarOverlay"
+// android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
 // implementuje ActivityCompat.OnRequestPermissionsResultCallback bo używamy intentu, który ma zwracać jakiś resultat
 public class ListOfOvertimesActivity
         extends AppCompatActivity
@@ -69,10 +78,35 @@ public class ListOfOvertimesActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
+        //getWindow().requestFeature(WindowCompat.FEATURE_ACTION_BAR_OVERLAY); // dodany aby przy przewijaniu chował sie actionBar
         setContentView(R.layout.activity_stats_info);
+
+
+        Toolbar myToolbar = findViewById(R.id.listOfOvertimesActivityToolbar);
+        setSupportActionBar(myToolbar);
+        ActionBar ab = getSupportActionBar();
+        ab.setDisplayOptions(ActionBar.DISPLAY_SHOW_TITLE);
+        ab.setTitle(R.string.list_of_overtimes);
+        ab.setDisplayHomeAsUpEnabled(true);
+        //ab.setHideOnContentScrollEnabled(true);// wymuszenie chowania się actionbar
+        // powoduje wyjątek z takim komunikatem: java.lang.UnsupportedOperationException: Hide on content scroll is not supported in this action bar configuration.
 
         mItemViewModel = ViewModelProviders.of(this).get(ItemViewModel.class);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        /*
+        if (onSearchRequested())
+            Toast.makeText(this, "można", Toast.LENGTH_SHORT).show();
+        else
+            Toast.makeText(this, "NIE można", Toast.LENGTH_SHORT).show();
+
+        Intent thisIntent = getIntent();
+        if (Intent.ACTION_SEARCH.equals(thisIntent.getAction())) {
+            String query = thisIntent.getStringExtra(SearchManager.QUERY);
+            //doMySearch(query);
+        }
+         */
 
         RecyclerView recyclerView = findViewById(R.id.allItemsTable);
         adapter = new ItemListAdapter(this);
@@ -108,7 +142,8 @@ public class ListOfOvertimesActivity
             @Override
             public void onClick(View v)
             {
-                setNewObserver();
+                mItemViewModel.clearSearchCriteria(); // TODO new
+                resetGetAllItemsObserver();
             }
         });
 
@@ -127,8 +162,56 @@ public class ListOfOvertimesActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_statistics, menu);
-        return true;
+        getMenuInflater().inflate(R.menu.menu_list_of_notes, menu);
+        MenuItem searchItem = menu.findItem(R.id.menuItemSearchNote);
+
+        EditText searchEditText = (EditText) searchItem.getActionView();
+        searchEditText.setHint(R.string.search_in_notes);
+        searchEditText.setSingleLine(true);
+        searchEditText.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
+        // searchEditText.setShowSoftInputOnFocus(true); // nie działa
+
+        searchItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener()
+        {
+            @Override
+            public boolean onMenuItemClick(MenuItem item)
+            {
+                if (searchEditText.requestFocus())
+                {
+                    InputMethodManager manager = (InputMethodManager)
+                            getSystemService(Context.INPUT_METHOD_SERVICE);
+                    manager.showSoftInputFromInputMethod(
+                            searchEditText.getWindowToken(), InputMethodManager.SHOW_FORCED);
+                }
+
+                return false;
+            }
+        });
+
+        // listener monitorujący aktualny wpis
+        searchEditText.addTextChangedListener(new TextWatcher()
+        {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after)
+            {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count)
+            {
+                mItemViewModel.getMatchingNoteQuery(s.toString());
+                resetGetAllItemsObserver();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s)
+            {
+
+            }
+        });
+
+        return super.onCreateOptionsMenu(menu);
     }
 
 
@@ -649,6 +732,30 @@ public class ListOfOvertimesActivity
 
     }
 
+
+
+    /**
+     * metoda wywoływana w momencie gdy urzytkownik w dialogu szukania wpisze liczbę minut
+     * większa niż 60 i naciśnie OK w celu szukania.
+     */
+    @Override
+    public void showInvalidMinutesNumberDialog()
+    {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.incorrect_minutes)
+                .setMessage(R.string.minutes_lower_60)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which)
+                    {
+                        // nothing to do
+                    }
+                })
+                .show();
+    }
+
     /**
      * Metoda jest callbackiem, który jest wywoływany gdy użytkownik zatwierdzi w dialogu
      * kryteria wyszukiwania (kryteria są argumentami tej metody).
@@ -671,12 +778,12 @@ public class ListOfOvertimesActivity
         mItemViewModel.loadItemsWhere(
                 yearOfOvertime, monthOfOvertime, dayOfOvertime, chosenHours, chosenMinutes, flags);
 
-        if(mItemViewModel.getSelectedItems().hasActiveObservers())
-            mItemViewModel.getSelectedItems().removeObservers(this);
+        //if(mItemViewModel.getSelectedItems().hasActiveObservers())
+        //    mItemViewModel.getSelectedItems().removeObservers(this);
         if(mItemViewModel.getAllItems().hasActiveObservers())
             mItemViewModel.getAllItems().removeObservers(this);
 
-        mItemViewModel.getSelectedItems().observe(this, new Observer<List<Item>>()
+        mItemViewModel.getAllItems().observe(this, new Observer<List<Item>>()
         {
             @Override
             public void onChanged(List<Item> items)
@@ -686,14 +793,18 @@ public class ListOfOvertimesActivity
         });
     }
 
+    // jeśli robimy jakiś search to wczytujemy dane do search live view
+    // nasßpnie kasujemy observera dla all items bo i ustawiamy go ponownie bo teraz będzie wskazywał na J
+    // dane które sa nowo wpisane jeśli
 
-    private void setNewObserver()
+
+    private void resetGetAllItemsObserver()
     {
-        if(mItemViewModel.getSelectedItems() != null && mItemViewModel.getSelectedItems().hasObservers())
-            mItemViewModel.getSelectedItems().removeObservers(this);
+        //if(mItemViewModel.getSelectedItems() != null && mItemViewModel.getSelectedItems().hasObservers())
+        //    mItemViewModel.getSelectedItems().removeObservers(this);
         if(mItemViewModel.getAllItems().hasActiveObservers())
             mItemViewModel.getAllItems().removeObservers(this);
-        mItemViewModel.clearSearchCriteria();
+        //mItemViewModel.clearSearchCriteria();
         mItemViewModel.getAllItems().observe(this, new Observer<List<Item>>()
         {
             @Override
@@ -708,7 +819,29 @@ public class ListOfOvertimesActivity
 
 
 
+/*
+<com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
 
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        android:visibility="visible"
+        app:layout_constraintBottom_toTopOf="@+id/constraintLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/listOfOvertimesActivityToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+ */
 
 
 

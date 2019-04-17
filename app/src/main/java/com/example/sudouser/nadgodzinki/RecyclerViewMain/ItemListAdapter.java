@@ -116,13 +116,13 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
                 {
                     case View.GONE:
                         holder.notesAboutOvertime.setVisibility(View.VISIBLE);
-                        holder.imageButtonRecycleView.setImageResource(android.R.drawable.arrow_up_float);
+                        holder.imageButtonRecycleView.setImageResource(R.drawable.ic_arrow_up_black_24dp);
                         holder.deleteItemButton.setVisibility(View.VISIBLE);
                         holder.hideShowLayout.setVisibility(View.VISIBLE);
                         break;
                     case View.VISIBLE:
                         holder.notesAboutOvertime.setVisibility(View.GONE);
-                        holder.imageButtonRecycleView.setImageResource(android.R.drawable.arrow_down_float);
+                        holder.imageButtonRecycleView.setImageResource(R.drawable.ic_arrow_down_black_24dp);
                         holder.deleteItemButton.setVisibility(View.GONE);
                         holder.hideShowLayout.setVisibility(View.GONE);
                         break;
@@ -251,24 +251,48 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
                 {
                     try
                     {
-                        int newMinutesValue;
+                        Integer newMinutesValue;
                         if (holder.minutesRecycleView.getText().toString().equals(""))
-                            newMinutesValue = 0;
+                            newMinutesValue = Integer.parseInt(
+                                    holder.minutesRecycleView.getHint().toString());
+                        else if (holder.minutesRecycleView.getText().toString().equals("-"))
+                            newMinutesValue = Integer.parseInt(
+                                    holder.minutesRecycleView.getHint().toString());
                         else
                             newMinutesValue = Integer.parseInt(
                                     holder.minutesRecycleView.getText().toString());
                         if (Math.abs(newMinutesValue) < 60)
                         {
-                            int hours = Integer.parseInt(holder.hoursRecycleView.getHint().toString());
-                            if ( (newMinutesValue < 0 && hours > 0) || (newMinutesValue >=0 && hours < 0) )
-                                hours = -hours;
-                            listener.changeNumberOfMinutesAndHours(hours, newMinutesValue, item.getUid());
-                            holder.minutesRecycleView.setHint(String.valueOf(newMinutesValue));
-                            holder.minutesRecycleView.setText("");
-                            Toast.makeText(context, R.string.operation_saved, Toast.LENGTH_SHORT).show();
-                            return false;
-                            // dajemy false bo wtedy klawiatura znika
-                            // na znak że nie chcemy dalej edytować
+                            Integer hours = Integer.parseInt(holder.hoursRecycleView.getHint().toString());
+                            if (hours.equals(0) && newMinutesValue.equals(0))
+                            {
+                                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                                builder.setTitle(R.string.incorrect_overtime)
+                                        .setIcon(android.R.drawable.ic_dialog_alert)
+                                        .setMessage(R.string.set_non_null_time)
+                                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener()
+                                        {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which)
+                                            {
+                                                holder.minutesRecycleView.setText("");
+                                            }
+                                        })
+                                        .show();
+                                return false;
+                            }
+                            else
+                            {
+                                if ( (newMinutesValue < 0 && hours > 0) || (newMinutesValue >=0 && hours < 0) )
+                                    hours = -hours;
+                                listener.changeNumberOfMinutesAndHours(hours, newMinutesValue, item.getUid());
+                                holder.minutesRecycleView.setHint(String.valueOf(newMinutesValue));
+                                holder.minutesRecycleView.setText("");
+                                Toast.makeText(context, R.string.operation_saved, Toast.LENGTH_SHORT).show();
+                                return false;
+                                // dajemy false bo wtedy klawiatura znika
+                                // na znak że nie chcemy dalej edytować
+                            }
                         }
                         else
                         {

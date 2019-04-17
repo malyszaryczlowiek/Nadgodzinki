@@ -1,13 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.sudouser.nadgodzinki.Statistics">
     <item
-        android:id="@+id/menuItemSaveBuckup"
-        android:title="@string/send_buckup" />
-    <item
-        android:id="@+id/menuItemReadBuckup"
-        android:title="@string/read_buckup" />
-    <item
-        android:id="@+id/clearDatabase"
-        android:title="@string/clear_all" />
+        android:id="@+id/action_settings"
+        android:orderInCategory="100"
+        android:title="@string/action_settings"
+        app:showAsAction="never" />
 </menu>

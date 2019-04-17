@@ -27,6 +27,7 @@ public class ItemViewModel extends AndroidViewModel
     private LiveData<List<Item>> allItems;
     private MutableLiveData<Calendar> localeDataLiveData = new MutableLiveData<>();
     private LiveData<List<Item>> selectedItems;
+    private LiveData<List<Item>> matchingNoteQuery;
 
 
     public ItemViewModel(Application application)
@@ -112,6 +113,12 @@ public class ItemViewModel extends AndroidViewModel
     public int getUIdfromDate(int year, int month, int day)
     {
         return mRepository.getUIdFromDate(year, month, day);
+    }
+
+    public void getMatchingNoteQuery(String query)
+    {
+        //this.clearSearchCriteria();
+        selectedItems = mRepository.getMachingNoteQuery(query);
     }
 }
 

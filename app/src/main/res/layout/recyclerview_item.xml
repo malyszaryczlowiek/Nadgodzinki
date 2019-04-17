@@ -47,7 +47,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/minutesRecycleView"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@android:drawable/arrow_down_float" />
+            app:srcCompat="@drawable/ic_arrow_down_black_24dp" />
 
         <EditText
             android:id="@+id/minutesRecycleView"

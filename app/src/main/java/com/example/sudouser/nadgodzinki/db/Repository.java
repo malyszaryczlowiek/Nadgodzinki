@@ -1,8 +1,6 @@
 package com.example.sudouser.nadgodzinki.db;
 
 import android.app.Application;
-import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
 
 import androidx.annotation.NonNull;
@@ -50,6 +48,15 @@ public class Repository
     {
         new insertAsyncTask(tabelaDao).execute(item);
     }
+
+
+
+    public LiveData<List<Item>> getMachingNoteQuery(String query)
+    {
+        String fullQuery = "%"+query+"%";
+        return tabelaDao.getMatchingNoteQuery(fullQuery);
+    }
+
 
 
     /**
@@ -421,6 +428,109 @@ public class Repository
         protected Integer doInBackground(Integer... integers)
         {
             return tabelaDao.getUIdFromDate(integers[0], integers[1], integers[2]);
+        }
+    }
+
+    public int numberOfMinutesDone(int year, int month, int day)
+    {
+        try
+        {
+            return new numberOfMinutesDoneAsyncTask(tabelaDao).execute(year, month, day).get();
+        }
+        catch (ExecutionException e)
+        {
+            e.printStackTrace();
+            return 0;
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    private static class numberOfMinutesDoneAsyncTask extends AsyncTask<Integer, Void, Integer>
+    {
+        private TabelaDao tabelaDao;
+
+        numberOfMinutesDoneAsyncTask(TabelaDao tabelaDao)
+        {
+            this.tabelaDao = tabelaDao;
+        }
+
+        @Override
+        protected Integer doInBackground(Integer... integers)
+        {
+            return tabelaDao.numberOfMinutesDone(integers[0], integers[1], integers[2]);
+        }
+    }
+
+    public int numberOfMinutesTaken(int year, int month, int day)
+    {
+        try
+        {
+            return new numberOfMinutesTakenAsyncTask(tabelaDao).execute(year, month, day).get();
+        }
+        catch (ExecutionException e)
+        {
+            e.printStackTrace();
+            return 0;
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    private static class numberOfMinutesTakenAsyncTask extends AsyncTask<Integer, Void, Integer>
+    {
+        private TabelaDao tabelaDao;
+
+        numberOfMinutesTakenAsyncTask(TabelaDao tabelaDao)
+        {
+            this.tabelaDao = tabelaDao;
+        }
+
+        @Override
+        protected Integer doInBackground(Integer... integers)
+        {
+            return tabelaDao.numberOfMinutesTaken(integers[0], integers[1], integers[2]);
+        }
+    }
+
+
+    public int allNumberOfMinutesToTake()
+    {
+        try
+        {
+            return new allNumberOfMinutesToTakeAsyncTask(tabelaDao).execute().get();
+        }
+        catch (ExecutionException e)
+        {
+            e.printStackTrace();
+            return 0;
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    private static class allNumberOfMinutesToTakeAsyncTask extends AsyncTask<Void, Void, Integer>
+    {
+        private TabelaDao tabelaDao;
+
+        allNumberOfMinutesToTakeAsyncTask(TabelaDao tabelaDao)
+        {
+            this.tabelaDao = tabelaDao;
+        }
+
+        @Override
+        protected Integer doInBackground(Void... voids)
+        {
+            return tabelaDao.allNumberOfMinutesToTake();
         }
     }
 }

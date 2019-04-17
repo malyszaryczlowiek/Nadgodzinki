@@ -67,7 +67,13 @@ public class SearchFilterItemsDialog extends AppCompatDialogFragment
                             if (minutes.equals(""))
                                 minutes = "0";
                             int minutesInt = Integer.parseInt(minutes);
-                            listener.manageChosenCriteria(year, month, day, hoursInt, minutesInt, flags);
+                            if (Math.abs(minutesInt) > 60)
+                            {
+                                dialog.cancel();
+                                listener.showInvalidMinutesNumberDialog();
+                            }
+                            else
+                                listener.manageChosenCriteria(year, month, day, hoursInt, minutesInt, flags);
                         }
                         catch (NumberFormatException e)
                         {
@@ -252,6 +258,7 @@ public class SearchFilterItemsDialog extends AppCompatDialogFragment
     public interface ChosenSearchCriteriaListener
     {
         void manageChosenCriteria(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int chosenHours, int chosenMinutes, SearchFlags flags);
+        void showInvalidMinutesNumberDialog();
     }
 }
 

@@ -38,9 +38,7 @@ public class ListOfCategoriesActivity extends AppCompatActivity implements
         fragment.setArguments(args);
         fragment.setTargetFragment(caller, 0);
         // Replace the existing Fragment with the new Fragment
-        ///*
         getSupportFragmentManager().beginTransaction().replace(android.R.id.content, fragment).addToBackStack(null).commit();
-        //*/
 
         return true;
     }
