@@ -27,8 +27,6 @@ public class ItemViewModel extends AndroidViewModel
     private LiveData<List<Item>> allItems;
     private MutableLiveData<Calendar> localeDataLiveData = new MutableLiveData<>();
     private LiveData<List<Item>> selectedItems;
-    private LiveData<List<Item>> matchingNoteQuery;
-
 
     public ItemViewModel(Application application)
     {
@@ -71,7 +69,8 @@ public class ItemViewModel extends AndroidViewModel
         mRepository.mergeDatabaseWithBuckupFile(itemsFromBuckUp);
     }
 
-    public void updateDateOfOvertime(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int dayOfWeek, int id)
+    public void updateDateOfOvertime(int yearOfOvertime, int monthOfOvertime,
+                                     int dayOfOvertime, int dayOfWeek, int id)
     {
         mRepository.updateDayOfOvertime(yearOfOvertime, monthOfOvertime, dayOfOvertime, dayOfWeek, id);
     }
@@ -95,14 +94,11 @@ public class ItemViewModel extends AndroidViewModel
         return localeDataLiveData;
     }
 
-    public LiveData<List<Item>> getSelectedItems()
+    public void loadItemsWhere(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime,
+                               int chosenHours, int chosenMinutes, SearchFlags flags)
     {
-        return selectedItems;
-    }
-
-    public void loadItemsWhere(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int chosenHours, int chosenMinutes, SearchFlags flags)
-    {
-        selectedItems = mRepository.loadItemsWhere(yearOfOvertime,  monthOfOvertime, dayOfOvertime, chosenHours, chosenMinutes, flags);
+        selectedItems = mRepository.loadItemsWhere(yearOfOvertime,  monthOfOvertime,
+                dayOfOvertime, chosenHours, chosenMinutes, flags);
     }
 
     public int checkNumberOfItemsWithDate(int year, int month, int day)
@@ -118,7 +114,7 @@ public class ItemViewModel extends AndroidViewModel
     public void getMatchingNoteQuery(String query)
     {
         //this.clearSearchCriteria();
-        selectedItems = mRepository.getMachingNoteQuery(query);
+        selectedItems = mRepository.getMatchingNoteQuery(query);
     }
 }
 

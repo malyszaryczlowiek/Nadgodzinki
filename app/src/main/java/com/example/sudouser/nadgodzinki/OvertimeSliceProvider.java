@@ -88,7 +88,7 @@ public class OvertimeSliceProvider extends SliceProvider
             return null;
         Intent intent = new Intent(getContext(), MainActivity.class);
         return SliceAction.create(PendingIntent.getActivity(getContext(), 0, intent, 0),
-                IconCompat.createWithResource(getContext(), R.drawable.ic_notifications_black_24dp),
+                IconCompat.createWithResource(getContext(), R.drawable.ic_notifications_black),
                 ListBuilder.ICON_IMAGE,
                 "Enter app");
     }
@@ -99,7 +99,7 @@ public class OvertimeSliceProvider extends SliceProvider
             return null;
         Intent intent = new Intent(getContext(), ListOfCategoriesActivity.class);
         return  SliceAction.create(PendingIntent.getActivity(getContext(), 0, intent, 0),
-                IconCompat.createWithResource(getContext(),R.drawable.ic_notifications_black_24dp),
+                IconCompat.createWithResource(getContext(),R.drawable.ic_notifications_black),
                 ListBuilder.ICON_IMAGE,
                 "Open preferences");
     }

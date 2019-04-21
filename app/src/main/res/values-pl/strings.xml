@@ -87,4 +87,5 @@
     <string name="quarter">Kwartał</string>
     <string name="year">Rok</string>
     <string name="time_to_take">Czas do odebrania:</string>
+    <string name="open_graph_in_new_activity">Otwórz w pełnym rozmiarze</string>
 </resources>

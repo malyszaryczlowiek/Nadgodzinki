@@ -2,6 +2,7 @@ package com.example.sudouser.nadgodzinki.db;
 
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
@@ -259,6 +260,14 @@ public interface TabelaDao
 
     @Query("SELECT SUM(Minutes) + 60 * SUM(Hours) FROM tabela ")
     int allNumberOfMinutesToTake();
+
+
+    //************************
+    // return number of minutes and hours
+    @Query("SELECT * FROM tabela " +
+            "WHERE ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) >= ( :year * 10000 + :month * 100 + :day) " +
+            "ORDER BY YearOfOvertime ASC, MonthOfOvertime ASC, DayOfOvertime ASC")
+    List<Item> listOfItemsSince(int year, int month, int day);
 }
 
 

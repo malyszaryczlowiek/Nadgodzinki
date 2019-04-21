@@ -28,8 +28,9 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="outputName" value="ic_arrow_up_black_24dp" />
-                            <entry key="sourceFile" value="$USER_HOME$" />
+                            <entry key="assetSourceType" value="FILE" />
+                            <entry key="outputName" value="ic_change_to_full_screen_24px" />
+                            <entry key="sourceFile" value="$USER_HOME$/Downloads/icons/round-zoom_out_map-24px.svg" />
                           </map>
                         </option>
                       </PersistentState>

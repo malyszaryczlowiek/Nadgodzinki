@@ -15,11 +15,15 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
         <activity
+            android:name=".GraphFullScreenActivity"
+            android:parentActivityName=".Statistics"
+            android:screenOrientation="landscape"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
             android:name=".Statistics"
-
             android:parentActivityName=".MainActivity"
-            android:theme="@style/AppTheme.NoActionBar.plus"></activity>
-        <!-- android:theme="@style/AppTheme" android:label="@string/statistics" -->
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar.plus" /> <!-- android:theme="@style/AppTheme" android:label="@string/statistics" -->
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -45,7 +49,7 @@
         </activity>
         <activity
             android:name=".ShowNotesActivity"
-            android:parentActivityName=".ListOfOvertimesActivity"></activity>
+            android:parentActivityName=".ListOfOvertimesActivity" />
         <activity
             android:name=".SettingsPreferences"
             android:label="@string/settings"

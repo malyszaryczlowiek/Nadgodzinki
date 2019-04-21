@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/previous_tab"
+        android:icon="@drawable/ic_round_arrow_back_ios_24px"
+        android:title="previous" />
+
+    <item
+        android:id="@+id/statistics_full_screen_button"
+        android:icon="@drawable/ic_change_to_full_screen_24px"
+        android:title="full" />
+
+    <item
+        android:id="@+id/next_tab"
+        android:icon="@drawable/ic_round_arrow_forward_ios_24px"
+        android:title="next" />
+</menu>

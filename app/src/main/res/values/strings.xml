@@ -98,5 +98,10 @@
     <string name="month">Month</string>
     <string name="quarter">Quarter</string>
     <string name="year">Year</string>
-    <string name="time_to_take">Time to take</string>
+    <string name="time_to_take">Time to take:</string>
+    <string name="open_graph_in_new_activity">Open full screen graph</string>
+    <string name="title_activity_bottom_navigation">BottomNavigation</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
 </resources>

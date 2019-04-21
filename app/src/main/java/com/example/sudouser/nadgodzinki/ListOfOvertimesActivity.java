@@ -55,8 +55,6 @@ import java.util.Arrays;
 import java.util.List;
 
 
-// android:theme="@style/AppTheme.AppBarOverlay"
-// android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
 // implementuje ActivityCompat.OnRequestPermissionsResultCallback bo używamy intentu, który ma zwracać jakiś resultat
 public class ListOfOvertimesActivity
         extends AppCompatActivity
@@ -142,7 +140,7 @@ public class ListOfOvertimesActivity
             @Override
             public void onClick(View v)
             {
-                mItemViewModel.clearSearchCriteria(); // TODO new
+                mItemViewModel.clearSearchCriteria();
                 resetGetAllItemsObserver();
             }
         });

@@ -49,13 +49,72 @@ public class Repository
         new insertAsyncTask(tabelaDao).execute(item);
     }
 
+    private static class insertAsyncTask extends AsyncTask<Item, Void, Void>
+    {
+        private TabelaDao mAsyncTaskDao;
+        insertAsyncTask(TabelaDao dao)
+        {
+            mAsyncTaskDao = dao;
+        }
+
+        /** używając następnie tego dao wykonujemy operację dodania elementu
+         * ale robimy to asynchronicznie!!! */
+        @Override
+        protected Void doInBackground(final Item... items)
+        {
+            mAsyncTaskDao.insert(items[0]);
+            return null;
+        }
+    }
 
 
-    public LiveData<List<Item>> getMachingNoteQuery(String query)
+    public LiveData<List<Item>> getMatchingNoteQuery(String query)
     {
         String fullQuery = "%"+query+"%";
         return tabelaDao.getMatchingNoteQuery(fullQuery);
     }
+
+    public List<Item> listOfItemsSince(int year, int month, int day)
+    {
+        //List<Item> list = tabelaDao.listOfItemsSince(year, month, day).getValue();
+        //int i = list.size();
+        try
+        {
+            return new listOfItemsSinceAsyncTask(tabelaDao).execute(year, month, day).get();
+        }
+        catch (ExecutionException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static class listOfItemsSinceAsyncTask extends AsyncTask<Integer, Void, List<Item>>
+    {
+        private TabelaDao tabelaDao;
+
+        listOfItemsSinceAsyncTask(TabelaDao tabelaDao)
+        {
+            this.tabelaDao = tabelaDao;
+        }
+
+        @Override
+        protected List<Item> doInBackground(Integer... integers)
+        {
+            return tabelaDao.listOfItemsSince(integers[0], integers[1], integers[2]);
+        }
+    }
+
+
+
+
+
+
 
 
 
@@ -194,23 +253,6 @@ public class Repository
         }
     }
 
-    private static class insertAsyncTask extends AsyncTask<Item, Void, Void>
-    {
-        private TabelaDao mAsyncTaskDao;
-        insertAsyncTask(TabelaDao dao)
-        {
-            mAsyncTaskDao = dao;
-        }
-
-        /** używając następnie tego dao wykonujemy operację dodania elementu
-         * ale robimy to asynchronicznie!!! */
-        @Override
-        protected Void doInBackground(final Item... items)
-        {
-            mAsyncTaskDao.insert(items[0]);
-            return null;
-        }
-    }
 
     public void delete(Item item)
     {

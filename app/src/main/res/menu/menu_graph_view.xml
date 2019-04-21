@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/open_graph_in_new_activity"
+        android:title="@string/open_graph_in_new_activity"
+        android:icon="@drawable/ic_change_to_full_screen_24px"
+        />
+</menu>
