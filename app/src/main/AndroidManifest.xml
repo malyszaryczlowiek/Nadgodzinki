@@ -23,7 +23,8 @@
             android:name=".Statistics"
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar.plus" /> <!-- android:theme="@style/AppTheme" android:label="@string/statistics" -->
+            android:theme="@style/AppTheme.NoActionBar.plus" />
+        <!-- android:theme="@style/AppTheme" android:label="@string/statistics" -->
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -48,28 +49,10 @@
             -->
         </activity>
         <activity
-            android:name=".ShowNotesActivity"
-            android:parentActivityName=".ListOfOvertimesActivity" />
-        <activity
             android:name=".SettingsPreferences"
             android:label="@string/settings"
             android:parentActivityName=".MainActivity"
             android:theme="@style/AppTheme" />
-        <activity
-            android:name=".Settings.ListOfCategoriesActivity"
-            android:label="Test"
-            android:parentActivityName=".MainActivity" />
-
-        <provider
-            android:name=".OvertimeSliceProvider"
-            android:authorities="com.example.sudouser.nadgodzinki"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.app.slice.category.SLICE" />
-            </intent-filter>
-        </provider>
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.example.sudouser.nadgodzinki.BuckUp.MyFileProvider"

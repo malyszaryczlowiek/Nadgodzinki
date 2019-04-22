@@ -17,7 +17,6 @@ import android.widget.Toast;
 
 import com.example.sudouser.nadgodzinki.BuckUp.BuckUpAlarmBroadcastReceiver;
 import com.example.sudouser.nadgodzinki.Dialogs.NoteDialog;
-import com.example.sudouser.nadgodzinki.Settings.ListOfCategoriesActivity;
 import com.example.sudouser.nadgodzinki.ViewModels.ItemViewModel;
 import com.example.sudouser.nadgodzinki.db.Item;
 
@@ -233,14 +232,6 @@ public class MainActivity extends AppCompatActivity
                 showSettings();
                 drawer.closeDrawer(GravityCompat.START);
                 return true;
-            case R.id.menuItemTest:
-                showTest();
-                drawer.closeDrawer(GravityCompat.START);
-                return true;
-            case R.id.showNotes:
-                showNotesActivity();
-                drawer.closeDrawer(GravityCompat.START);
-                return true;
             default:
                 return true;
         }
@@ -357,19 +348,6 @@ public class MainActivity extends AppCompatActivity
         Intent intent = new Intent(this, SettingsPreferences.class);
         startActivity(intent);
     }
-
-    private void showTest()
-    {
-        Intent intent = new Intent(this, ListOfCategoriesActivity.class);
-        startActivity(intent);
-    }
-
-    private void showNotesActivity()
-    {
-        Intent intent = new Intent(this, ShowNotesActivity.class);
-        startActivity(intent);
-    }
-
 
 
     /**

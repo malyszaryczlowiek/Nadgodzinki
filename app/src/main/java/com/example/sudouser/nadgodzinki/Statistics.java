@@ -385,7 +385,7 @@ public class Statistics extends AppCompatActivity
             super.onCreateContextMenu(menu, v, menuInfo);
 
             MenuInflater menuInflater = getActivity().getMenuInflater();
-            menuInflater.inflate(R.menu.menu_graph_view, menu);
+            menuInflater.inflate(R.menu.menu_context_graph_view, menu);
         }
 
         @Override

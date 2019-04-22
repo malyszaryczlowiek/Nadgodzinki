@@ -19,10 +19,5 @@
         android:id="@+id/menuItemAppInfo"
         android:icon="@drawable/ic_info_24dp"
         android:title="@string/app_info" />
-    <item
-        android:id="@+id/menuItemTest"
-        android:title="@string/test" />
-    <item
-        android:id="@+id/showNotes"
-        android:title="@string/test" />
+
 </menu>
