@@ -78,7 +78,7 @@ public class ListOfOvertimesActivity
         super.onCreate(savedInstanceState);
 
         //getWindow().requestFeature(WindowCompat.FEATURE_ACTION_BAR_OVERLAY); // dodany aby przy przewijaniu chował sie actionBar
-        setContentView(R.layout.activity_stats_info);
+        setContentView(R.layout.activity_list_of_overtimes);
 
 
         Toolbar myToolbar = findViewById(R.id.listOfOvertimesActivityToolbar);

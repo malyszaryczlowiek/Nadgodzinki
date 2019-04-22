@@ -2,7 +2,6 @@ package com.example.sudouser.nadgodzinki;
 
 import android.icu.util.Calendar;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Toast;
 
 import com.example.sudouser.nadgodzinki.ViewModels.StatisticsViewModel;
@@ -35,9 +34,7 @@ public class GraphFullScreenActivity extends AppCompatActivity
 
         List<Item> lista;
 
-        int year = 0;
-        int month = 0;
-        int day = 0;
+        int year, month, day;
 
         switch (position)
         {

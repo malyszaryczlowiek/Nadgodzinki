@@ -4,15 +4,15 @@
     <item
         android:id="@+id/previous_tab"
         android:icon="@drawable/ic_round_arrow_back_ios_24px"
-        android:title="previous" />
+        android:title="@string/back" />
 
     <item
         android:id="@+id/statistics_full_screen_button"
         android:icon="@drawable/ic_change_to_full_screen_24px"
-        android:title="full" />
+        android:title="@string/graph" />
 
     <item
         android:id="@+id/next_tab"
         android:icon="@drawable/ic_round_arrow_forward_ios_24px"
-        android:title="next" />
+        android:title="@string/next" />
 </menu>
