@@ -2,7 +2,6 @@ package com.example.sudouser.nadgodzinki.db;
 
 import java.util.List;
 
-import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
@@ -33,126 +32,162 @@ public interface TabelaDao
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) > ABS(:hours * 60 + :minutes) " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) > ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "> ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime DESC, MonthOfOvertime DESC, DayOfOvertime DESC")
-    LiveData<List<Item>> loadAllItemsWhereOvertimesAreLongerThanAndDateIsAfterDesc(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadAllItemsWhereOvertimesAreLongerThanAndDateIsAfterDesc(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) > ABS(:hours * 60 + :minutes) AND (Hours + Minutes) > 0 " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) > ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "> ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime DESC, MonthOfOvertime DESC, DayOfOvertime DESC")
-    LiveData<List<Item>> loadDoneItemsWhereOvertimesAreLongerThanAndDateIsAfterDesc(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadDoneItemsWhereOvertimesAreLongerThanAndDateIsAfterDesc(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) > ABS(:hours * 60 + :minutes) AND (Hours + Minutes) < 0 " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) > ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "> ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime DESC, MonthOfOvertime DESC, DayOfOvertime DESC")
-    LiveData<List<Item>> loadTakenItemsWhereOvertimesAreLongerThanAndDateIsAfterDesc(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadTakenItemsWhereOvertimesAreLongerThanAndDateIsAfterDesc(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
 
 
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) > ABS(:hours * 60 + :minutes) " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) > ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "> ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime ASC, MonthOfOvertime ASC, DayOfOvertime ASC")
-    LiveData<List<Item>> loadAllItemsWhereOvertimesAreLongerThanAndDateDateIsAfterAsc(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadAllItemsWhereOvertimesAreLongerThanAndDateDateIsAfterAsc(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) > ABS(:hours * 60 + :minutes) AND (Hours + Minutes) > 0 " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) > ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "> ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime ASC, MonthOfOvertime ASC, DayOfOvertime ASC")
-    LiveData<List<Item>> loadDoneItemsWhereOvertimesAreLongerThanAndDateDateIsAfterAsc(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadDoneItemsWhereOvertimesAreLongerThanAndDateDateIsAfterAsc(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) > ABS(:hours * 60 + :minutes) AND (Hours + Minutes) < 0 " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) > ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "> ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime ASC, MonthOfOvertime ASC, DayOfOvertime ASC")
-    LiveData<List<Item>> loadTakenItemsWhereOvertimesAreLongerThanAndDateDateIsAfterAsc(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadTakenItemsWhereOvertimesAreLongerThanAndDateDateIsAfterAsc(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
 
 
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) > ABS(:hours * 60 + :minutes) " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) <= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "<= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime DESC , MonthOfOvertime DESC, DayOfOvertime DESC")
-    LiveData<List<Item>> loadAllItemsWhereOvertimesAreLongerThanAndDateIsBeforeDesc(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadAllItemsWhereOvertimesAreLongerThanAndDateIsBeforeDesc(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) > ABS(:hours * 60 + :minutes) AND (Hours + Minutes) > 0 " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) <= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "<= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime DESC, MonthOfOvertime DESC, DayOfOvertime DESC")
-    LiveData<List<Item>> loadDoneItemsWhereOvertimesAreLongerThanAndDateIsBeforeDesc(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadDoneItemsWhereOvertimesAreLongerThanAndDateIsBeforeDesc(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) > ABS(:hours * 60 + :minutes) AND (Hours + Minutes) < 0 " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) <= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "<= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime DESC, MonthOfOvertime DESC, DayOfOvertime DESC")
-    LiveData<List<Item>> loadTakenItemsWhereOvertimesAreLongerThanAndDateIsBeforeDesc(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadTakenItemsWhereOvertimesAreLongerThanAndDateIsBeforeDesc(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
 
 
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) > ABS(:hours * 60 + :minutes) " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) <= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "<= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime ASC, MonthOfOvertime ASC, DayOfOvertime ASC")
-    LiveData<List<Item>> loadAllItemsWhereOvertimesAreLongerThanAndDateIsBeforeASC(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadAllItemsWhereOvertimesAreLongerThanAndDateIsBeforeASC(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) > ABS(:hours * 60 + :minutes) AND (Hours + Minutes) > 0 " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) <= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "<= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime ASC, MonthOfOvertime ASC, DayOfOvertime ASC")
-    LiveData<List<Item>> loadDoneItemsWhereOvertimesAreLongerThanAndDateIsBeforeASC(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadDoneItemsWhereOvertimesAreLongerThanAndDateIsBeforeASC(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) > ABS(:hours * 60 + :minutes) AND (Hours + Minutes) < 0 " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) <= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "<= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime ASC, MonthOfOvertime ASC, DayOfOvertime ASC")
-    LiveData<List<Item>> loadTakenItemsWhereOvertimesAreLongerThanAndDateIsBeforeASC(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadTakenItemsWhereOvertimesAreLongerThanAndDateIsBeforeASC(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
 
 
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) < ABS(:hours * 60 + :minutes) " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) > ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "> ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime DESC, MonthOfOvertime DESC, DayOfOvertime DESC")
-    LiveData<List<Item>> loadAllItemsWhereOvertimesAreShorterThanAndDateIsAfterDesc(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadAllItemsWhereOvertimesAreShorterThanAndDateIsAfterDesc(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) < ABS(:hours * 60 + :minutes) AND (Hours + Minutes) > 0 " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) > ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "> ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime DESC, MonthOfOvertime DESC, DayOfOvertime DESC")
-    LiveData<List<Item>> loadDoneItemsWhereOvertimesAreShorterThanAndDateIsAfterDesc(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadDoneItemsWhereOvertimesAreShorterThanAndDateIsAfterDesc(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) < ABS(:hours * 60 + :minutes) AND (Hours + Minutes) < 0 " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) > ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "> ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime DESC, MonthOfOvertime DESC, DayOfOvertime DESC")
-    LiveData<List<Item>> loadTakenItemsWhereOvertimesAreShorterThanAndDateIsAfterDesc(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadTakenItemsWhereOvertimesAreShorterThanAndDateIsAfterDesc(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
 
 
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) < ABS(:hours * 60 + :minutes) " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) > ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "> ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime ASC, MonthOfOvertime ASC, DayOfOvertime ASC")
-    LiveData<List<Item>> loadAllItemsWhereOvertimesAreShorterThanAndDateIsAfterASC(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadAllItemsWhereOvertimesAreShorterThanAndDateIsAfterASC(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) < ABS(:hours * 60 + :minutes)  AND (Hours + Minutes) > 0 "+
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) > ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "> ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime ASC, MonthOfOvertime ASC, DayOfOvertime ASC")
-    LiveData<List<Item>> loadDoneItemsWhereOvertimesAreShorterThanAndDateIsAfterASC(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadDoneItemsWhereOvertimesAreShorterThanAndDateIsAfterASC(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) < ABS(:hours * 60 + :minutes) AND (Hours + Minutes) < 0 " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) > ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "> ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime ASC, MonthOfOvertime ASC, DayOfOvertime ASC")
-    LiveData<List<Item>> loadTakenItemsWhereOvertimesAreShorterThanAndDateIsAfterASC(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadTakenItemsWhereOvertimesAreShorterThanAndDateIsAfterASC(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
 
 
@@ -160,21 +195,27 @@ public interface TabelaDao
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) < ABS(:hours * 60 + :minutes) " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) <= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "<= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime DESC, MonthOfOvertime DESC, DayOfOvertime DESC")
-    LiveData<List<Item>> loadAllItemsWhereOvertimesAreShorterThanAndDateIsBeforeDesc(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadAllItemsWhereOvertimesAreShorterThanAndDateIsBeforeDesc(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) < ABS(:hours * 60 + :minutes) AND (Hours + Minutes) > 0 " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) <= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "<= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime DESC, MonthOfOvertime DESC, DayOfOvertime DESC")
-    LiveData<List<Item>> loadDoneItemsWhereOvertimesAreShorterThanAndDateIsBeforeDesc(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadDoneItemsWhereOvertimesAreShorterThanAndDateIsBeforeDesc(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) < ABS(:hours * 60 + :minutes) AND (Hours + Minutes) < 0 " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) <= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "<= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime DESC, MonthOfOvertime DESC, DayOfOvertime DESC")
-    LiveData<List<Item>> loadTakenItemsWhereOvertimesAreShorterThanAndDateIsBeforeDesc(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadTakenItemsWhereOvertimesAreShorterThanAndDateIsBeforeDesc(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
 
 
@@ -182,27 +223,35 @@ public interface TabelaDao
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) < ABS(:hours * 60 + :minutes) " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) <= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "<= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime ASC, MonthOfOvertime ASC, DayOfOvertime ASC")
-    LiveData<List<Item>> loadAllItemsWhereOvertimesAreShorterThanAndDateIsBeforeASC(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadAllItemsWhereOvertimesAreShorterThanAndDateIsBeforeASC(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) < ABS(:hours * 60 + :minutes) AND (Hours + Minutes) > 0 " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) <= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "<= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime ASC, MonthOfOvertime ASC, DayOfOvertime ASC")
-    LiveData<List<Item>> loadDoneItemsWhereOvertimesAreShorterThanAndDateIsBeforeASC(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadDoneItemsWhereOvertimesAreShorterThanAndDateIsBeforeASC(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
 
     @Query("SELECT * FROM tabela " +
             "WHERE ABS(Hours * 60 + Minutes) < ABS(:hours * 60 + :minutes) AND (Hours + Minutes) > 0 " +
-            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) <= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
+            "AND ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            "<= ( :yearOfOvertime * 10000 + :monthOfOvertime * 100 + :dayOfOvertime)" +
             "ORDER BY YearOfOvertime ASC, MonthOfOvertime ASC, DayOfOvertime ASC")
-    LiveData<List<Item>> loadTakenItemsWhereOvertimesAreShorterThanAndDateIsBeforeASC(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+    LiveData<List<Item>> loadTakenItemsWhereOvertimesAreShorterThanAndDateIsBeforeASC(
+            int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int hours, int minutes);
+
 
 
     //************************
     // returning items with matching regex note query
 
-    @Query("SELECT * FROM tabela WHERE Note LIKE :query ")
+    @Query("SELECT * FROM tabela WHERE Note LIKE :query " +
+            "ORDER BY YearOfOvertime DESC, MonthOfOvertime DESC, DayOfOvertime DESC")
     LiveData<List<Item>> getMatchingNoteQuery(String query);
 
 
@@ -216,14 +265,18 @@ public interface TabelaDao
     @Delete
     void deleteItem(Item item);
 
-    @Query("DELETE FROM tabela WHERE YearOfOvertime = :year AND MonthOfOvertime = :month AND DayOfOvertime = :day" )
+    @Query("DELETE FROM tabela WHERE YearOfOvertime = :year AND MonthOfOvertime = :month " +
+            "AND DayOfOvertime = :day" )
     void deleteItemeWhereOvertimeDateIs(int year, int month, int day);
+
+
 
 
     //************************
     // updating queries
 
-    @Query("UPDATE tabela SET YearOfOvertime = :newYear, MonthOfOvertime = :newMonth, DayOfOvertime = :newDay, Day = :dayOfWeek WHERE uid = :id")
+    @Query("UPDATE tabela SET YearOfOvertime = :newYear, MonthOfOvertime = :newMonth, " +
+            "DayOfOvertime = :newDay, Day = :dayOfWeek WHERE uid = :id")
     void updateDateOfOvertime(int newYear, int newMonth, int newDay, int dayOfWeek, int id);
 
     @Query("UPDATE tabela SET Minutes = :minutes, Hours = :hours WHERE uid = :id")
@@ -232,15 +285,20 @@ public interface TabelaDao
     @Query("UPDATE tabela SET Note = :note WHERE uid = :id")
     void updateNote(String note, int id);
 
+
+
     //************************
     // return number of matching items
 
-    @Query("SELECT COUNT(*) FROM tabela WHERE YearOfOvertime = :year AND MonthOfOvertime = :month AND DayOfOvertime = :day")
+    @Query("SELECT COUNT(*) FROM tabela WHERE YearOfOvertime = :year AND MonthOfOvertime = :month " +
+            "AND DayOfOvertime = :day")
     int numberOfMatchingItems(int year, int month, int day);
 
 
-    @Query("SELECT uid FROM tabela WHERE YearOfOvertime = :year AND MonthOfOvertime = :month AND DayOfOvertime = :day")
+    @Query("SELECT uid FROM tabela WHERE YearOfOvertime = :year AND MonthOfOvertime = :month " +
+            "AND DayOfOvertime = :day")
     int getUIdFromDate(int year, int month, int day);
+
 
 
     //************************
@@ -262,10 +320,12 @@ public interface TabelaDao
     int allNumberOfMinutesToTake();
 
 
+
     //************************
     // return number of minutes and hours
     @Query("SELECT * FROM tabela " +
-            "WHERE ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) >= ( :year * 10000 + :month * 100 + :day) " +
+            "WHERE ( YearOfOvertime * 10000 + MonthOfOvertime * 100 + DayOfOvertime) " +
+            ">= ( :year * 10000 + :month * 100 + :day) " +
             "ORDER BY YearOfOvertime ASC, MonthOfOvertime ASC, DayOfOvertime ASC")
     List<Item> listOfItemsSince(int year, int month, int day);
 }

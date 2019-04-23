@@ -77,7 +77,8 @@ public class ListOfOvertimesActivity
     {
         super.onCreate(savedInstanceState);
 
-        //getWindow().requestFeature(WindowCompat.FEATURE_ACTION_BAR_OVERLAY); // dodany aby przy przewijaniu chował sie actionBar
+        //getWindow().requestFeature(WindowCompat.FEATURE_ACTION_BAR_OVERLAY);
+        // dodany aby przy przewijaniu chował sie actionBar
         setContentView(R.layout.activity_list_of_overtimes);
 
 
@@ -93,18 +94,6 @@ public class ListOfOvertimesActivity
         mItemViewModel = ViewModelProviders.of(this).get(ItemViewModel.class);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-        /*
-        if (onSearchRequested())
-            Toast.makeText(this, "można", Toast.LENGTH_SHORT).show();
-        else
-            Toast.makeText(this, "NIE można", Toast.LENGTH_SHORT).show();
-
-        Intent thisIntent = getIntent();
-        if (Intent.ACTION_SEARCH.equals(thisIntent.getAction())) {
-            String query = thisIntent.getStringExtra(SearchManager.QUERY);
-            //doMySearch(query);
-        }
-         */
 
         RecyclerView recyclerView = findViewById(R.id.allItemsTable);
         adapter = new ItemListAdapter(this);
@@ -167,6 +156,7 @@ public class ListOfOvertimesActivity
         searchEditText.setHint(R.string.search_in_notes);
         searchEditText.setSingleLine(true);
         searchEditText.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
+
         // searchEditText.setShowSoftInputOnFocus(true); // nie działa
 
         searchItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener()
@@ -182,7 +172,7 @@ public class ListOfOvertimesActivity
                             searchEditText.getWindowToken(), InputMethodManager.SHOW_FORCED);
                 }
 
-                return false;
+                return true;
             }
         });
 
