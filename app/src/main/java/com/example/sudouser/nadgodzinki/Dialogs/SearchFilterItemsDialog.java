@@ -67,7 +67,7 @@ public class SearchFilterItemsDialog extends AppCompatDialogFragment
                             if (minutes.equals(""))
                                 minutes = "0";
                             int minutesInt = Integer.parseInt(minutes);
-                            if (Math.abs(minutesInt) > 60)
+                            if (Math.abs(minutesInt) >= 60)
                             {
                                 dialog.cancel();
                                 listener.showInvalidMinutesNumberDialog();

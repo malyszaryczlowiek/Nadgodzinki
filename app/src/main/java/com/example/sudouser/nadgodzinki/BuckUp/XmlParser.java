@@ -69,8 +69,6 @@ public class XmlParser
                                 String value = textNode.getData().trim(); // trim() omija whitespaces (bo te są Text, więc odpadną) w wartości elementu
                                 switch (cecha.getTagName())
                                 {
-                                    //TODO jeśli new Item() wyjebie nullPointerException to znaczy, że trzeba wywalić break
-                                    // bo on  pewnie powoduje wyjście z pętli
                                     case "Id":
                                         id = value;
                                         break;

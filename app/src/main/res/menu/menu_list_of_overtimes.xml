@@ -7,17 +7,22 @@
         android:title="@string/search_in_notes"
         android:icon="@drawable/ic_list_activity_search"
         android:windowSoftInputMode="stateAlwaysVisible"
+
         app:showAsAction="ifRoom|collapseActionView"
-        app:actionViewClass="android.widget.EditText"/>
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        />
+    <!-- app:actionViewClass="android.widget.EditText" -->
 
     <item
-        android:id="@+id/menuItemSaveBuckup"
-        android:title="@string/send_buckup"
+        android:id="@+id/filterDatabase"
+        android:title="@string/filter"
         app:showAsAction="never"/>
+
     <item
-        android:id="@+id/menuItemReadBuckup"
-        android:title="@string/read_buckup"
+        android:id="@+id/clearFilterCriteria"
+        android:title="@string/clear_filters"
         app:showAsAction="never"/>
+
     <item
         android:id="@+id/clearDatabase"
         android:title="@string/clear_all"

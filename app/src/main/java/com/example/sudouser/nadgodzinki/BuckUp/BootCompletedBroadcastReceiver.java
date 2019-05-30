@@ -78,11 +78,13 @@ public class BootCompletedBroadcastReceiver extends BroadcastReceiver
                     intervalMillis = (long) 1000 * 3600 * 24 * 7;
                     break;
             }
-            int chosenDay = Integer.valueOf(mSharedPreferences.getString("buckupDay", "6"));//getInt("buckupDay", 6);
+            int chosenDay = Integer.valueOf(mSharedPreferences
+                    .getString("buckupDay", "6"));//getInt("buckupDay", 6);
             Calendar calendar = android.icu.util.Calendar.getInstance();
             calendar.set(android.icu.util.Calendar.HOUR,0);
             calendar.set(android.icu.util.Calendar.MINUTE, 0);
-            calendar.add(android.icu.util.Calendar.DAY_OF_WEEK, Math.abs(calendar.get(android.icu.util.Calendar.DAY_OF_WEEK) - chosenDay));
+            calendar.add(android.icu.util.Calendar.DAY_OF_WEEK, Math.abs(calendar
+                    .get(android.icu.util.Calendar.DAY_OF_WEEK) - chosenDay));
             calendar.add(android.icu.util.Calendar.HOUR_OF_DAY, 19);
             calendar.add(android.icu.util.Calendar.MINUTE, 0);
 

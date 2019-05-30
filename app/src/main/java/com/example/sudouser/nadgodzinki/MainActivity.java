@@ -1,5 +1,8 @@
 package com.example.sudouser.nadgodzinki;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -8,7 +11,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.icu.util.Calendar;
-import android.view.Menu;
+import android.os.Environment;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.CalendarView;
@@ -16,12 +20,22 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.sudouser.nadgodzinki.BuckUp.BuckUpAlarmBroadcastReceiver;
+import com.example.sudouser.nadgodzinki.BuckUp.BuckUpFile;
+import com.example.sudouser.nadgodzinki.BuckUp.MyFileProvider;
+import com.example.sudouser.nadgodzinki.BuckUp.XmlParser;
 import com.example.sudouser.nadgodzinki.Dialogs.NoteDialog;
 import com.example.sudouser.nadgodzinki.ViewModels.ItemViewModel;
 import com.example.sudouser.nadgodzinki.db.Item;
 
 import com.google.android.material.navigation.NavigationView;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -33,10 +47,17 @@ import androidx.lifecycle.*;
 import androidx.preference.PreferenceManager;
 
 
-
+/**
+ * @author Robert Pomorski
+ * @version 0.1
+ * Klasa w której wykonywane są takie czynności jak dodawanie i odejmowanie
+ * nadgodzin, wykonywanie kopii zapasowej, wczytywanie kopii zapasowej,
+ *
+ */
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-        NoteDialog.NoteDialogListener
+        NoteDialog.NoteDialogListener,
+        ActivityCompat.OnRequestPermissionsResultCallback
 {
 
     private ItemViewModel mItemViewModel;
@@ -47,13 +68,20 @@ public class MainActivity extends AppCompatActivity
     private static final int pendingIntentRequestCode = 2;
 
     // fields necessary to create Item
+    private String todayDate;
     private int yearOfOvertime;
     private int monthOfOvertime;
     private int dayOfOvertime;
-    private String todayDate;
     private int dayOfWeek;
     private int minutesInt;
     private int hoursInt;
+
+    // stałe wykorzystane w metodzie readBuckUp()
+    private static final int MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 1;
+    private static final int MY_PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE = 2;
+    private Context thisContext = this;
+
+    private List<Item> listOfItems =  new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -63,35 +91,25 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.mainActivityToolbar);
         setSupportActionBar(toolbar);
 
-        /*
-        // skasowałem floating
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-         */
-
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        // TODO wklejam zawartość mojego MainActivity
-        // TODO zrobić najpierw nowy wątek dla mItemViewModel'a to nam potwierdzi lub obali koncepcję
-        // czy można w ten sposób uruchamiać Activity
         mItemViewModel = ViewModelProviders.of(this).get(ItemViewModel.class);
+        mItemViewModel.getAllItems().observe(this, new Observer<List<Item>>()
+        {
+            @Override
+            public void onChanged(List<Item> items)
+            {
+                listOfItems = items;
+            }
+        });
         final CalendarView calendarView = findViewById(R.id.mainCalendar);
         calendarView.setMaxDate(Calendar.getInstance().getTimeInMillis());
         calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener()
@@ -145,8 +163,12 @@ public class MainActivity extends AppCompatActivity
             }
         };
         mSharedPreferences.registerOnSharedPreferenceChangeListener(listener);
+
+        if (getIntent().getBooleanExtra("fromNotifier", false))
+            makeBuckup();
     }
 
+    /*
     /**
      * metoda wyświetlająca menu
      * @param menu
@@ -194,12 +216,14 @@ public class MainActivity extends AppCompatActivity
     //********************************************
 
     /**
-     *
+     * Metoda wywoływana w momencie gdy Drawer Layer (boczny pasek)
+     * jest rozwinięty a naciśniemy naprzycisk wstecz. Spowoduje to
+     * schowanie się bocznego paska.
      */
     @Override
     public void onBackPressed()
     {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START))
         {
             drawer.closeDrawer(GravityCompat.START);
@@ -210,13 +234,18 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-
+    /**
+     * Metoda wywoływana gdy użytkownik wybierze jakis element z listy
+     * w DrawerLayout. W zależności to tego jaki item jest wybrany
+     * wywoływana jest funkcja, która obsługuje ten przypadek, a następnie
+     * używając drawer.closeDrawer() chowamy drawer.
+     * @param item wybrany element z listy.
+     * @return boolean powinien zwracać true bo wtedy menu chowa się samo.
+     */
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
-    public boolean onNavigationItemSelected(MenuItem item)
+    public boolean onNavigationItemSelected(@NonNull MenuItem item)
     {
-        // Handle navigation view item clicks here.
-
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         switch(item.getItemId())
         {
@@ -230,6 +259,14 @@ public class MainActivity extends AppCompatActivity
                 return true;
             case R.id.menuItemSettings:
                 showSettings();
+                drawer.closeDrawer(GravityCompat.START);
+                return true;
+            case R.id.menuItemMakeBuckup:
+                makeBuckup();
+                drawer.closeDrawer(GravityCompat.START);
+                return true;
+            case R.id.menuItemReadBuckup:
+                readBuckUp();
                 drawer.closeDrawer(GravityCompat.START);
                 return true;
             default:
@@ -250,6 +287,10 @@ public class MainActivity extends AppCompatActivity
         super.onPause();
     }
 
+    /**
+     * Gdy nasze activity jest niszczone należy odrejestrować listenera
+     * odpowiedzialnego za rejestrowanie zmian w preferencjach.
+     */
     @Override
     protected void onDestroy()
     {
@@ -258,11 +299,19 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-
     /**
-     * Metoda generująca nam alarm Manager, który służy do tego aby sustem wysyłał broadCast do naszej aplikacji
-     * dokładniej do BuckUpAlarmBroadcastReceiver'a aby ten mógł wywołać notyfikację. Notyfikacja z kolei
-     * wywołuje Intent StatsInfoActivity w jednoczesnym wywołaniem metody makeBuckup()
+     * Metoda generująca nam alarm Manager, który służy do tego aby Anroid
+     * wysyłał broadCast do naszej aplikacji. Broadcast ten będzie odebrany w
+     * clase BuckUpAlarmBroadcastReceiver {@link link to BuckUpAlarmBroadcastReceiver }
+     * aby ta znowu mogła wywołać notyfikację przy użyciu clasy {@link link}.
+     *
+     * Metoda wczytuje jaki powinien być interwał czasowy oraz wczytuje w jaki dzień
+     * alar będzie wywoływany. Następnie generuje alarm w postaci SystemService
+     * używa do tego getSystemService(class) która automatycznie tworzy taki service.
+     * Tworzy intent do którego dajemy odnośnik do broadcastu który ma go przechwycić
+     * Następnie wkłądając w pending intent tworzymy tak naprawdę Service obsługiwany
+     * przez system. następnie do alarmu za pomocą setRepeating() wkłądamy jego typ
+     * punkt startowy, interwał oraz intent Service, który będzie ten alrm obsługiwał.
      */
     private void createAlarmManager()
     {
@@ -284,24 +333,34 @@ public class MainActivity extends AppCompatActivity
                     intervalMillis = (long) 1000 * 3600 * 24 * 7;
                     break;
             }
-            int chosenDay = Integer.valueOf(mSharedPreferences.getString("buckupDay", "6"));//getInt("buckupDay", 6);
+            // wartości zmieniają się od 1-7 a zaczynają się od niedzieli= 1.
+            int chosenDay = Integer.valueOf(
+                    mSharedPreferences.getString("buckupDay", "6"));
             Calendar calendar = Calendar.getInstance();
             calendar.set(Calendar.HOUR,0);
             calendar.set(Calendar.MINUTE, 0);
-            calendar.add(Calendar.DAY_OF_WEEK, Math.abs(calendar.get(Calendar.DAY_OF_WEEK) - chosenDay));
+            calendar.add(Calendar.DAY_OF_WEEK, Math.abs(
+                    calendar.get(Calendar.DAY_OF_WEEK) - chosenDay));
             calendar.add(Calendar.HOUR_OF_DAY, 19);
             calendar.add(Calendar.MINUTE, 0);
 
             mAlarm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-            Intent intent = new Intent(getApplicationContext(), BuckUpAlarmBroadcastReceiver.class);
-            mPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), pendingIntentRequestCode,
-                    intent, PendingIntent.FLAG_UPDATE_CURRENT); // TODO ewentualnie zamienić na cancell current
-            mAlarm.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), intervalMillis, mPendingIntent);
+            Intent intent = new Intent(getApplicationContext(),
+                    BuckUpAlarmBroadcastReceiver.class);
+            mPendingIntent = PendingIntent.getBroadcast(
+                    getApplicationContext(), pendingIntentRequestCode,
+                    intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            mAlarm.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
+                    intervalMillis, mPendingIntent);
         }
     }
 
     /**
-     * metoda kasująca alarm służący do wywołania notyfikacji o potrzebie zrobienia buckup'u
+     * Metoda kasująca alarm służący do wywołania notyfikacji o potrzebie
+     * zrobienia buckup'u. Wywoływana jest gdy listener rejestrujący zmiany
+     * w sharedPreferences SharedPreferences.OnSharedPreferenceChangeListener()
+     * zdefiniowany w metodzie onCreate() wykryje, że dla danego klucza
+     * zminiona została wartość.
      */
     private void cancelAlarm()
     {
@@ -311,38 +370,53 @@ public class MainActivity extends AppCompatActivity
 
 
     /**
-     * FUnkcja wywoływana po naciśnięciu przycisku dodaj. Dalej jest opisane co po kolei się dzieje
-     * 1. Przypisujemy pola w które wprowadzamy godzinę i minutę do odpowiednich lokalnych zmiennych
-     * 2. Wyłuskujemy wartości, które są tam wpisane.
-     * 3. Jeśli nic nie ma wpisanego to wyskakuje dialogue że nie wprowadziłem żadnej nadgodziny
-     * 4. Transformuję stringi do Integerów.
-     * 5. Zczytuję datę wybraną przez urzytkownika oraz dzisiejszą i porównuję je
-     * 6. jeśli  jest mniej niż 60 min lub data jest późniejsza
-     * 7. jeśli jest ok to zapisz dane do bazy danych.
-     * @param view
+     * Metoda przypisana w MainActivity.xml file do przycisku odpowiedzialnego
+     * za dodawanie dodatniej nadgodziny.
+     * @param view przycisk add/dodaj
      */
     public void addMainButtonClicked(View view)
     {
         insertTimeChecker(true);
     }
 
+
+    /**
+     * metoda wywoływana gdy użytkownik będzie chciał dodać ujemną nadgodzinę
+     * @param view przycisk delete/usuń
+     */
     public void deleteOvertime(View view)
     {
         insertTimeChecker(false);
     }
 
+    /**
+     * Metoda która odpala Activity z listą wykonanych i odebranych nadgodzin
+     * jeśli fromNotifier jest true tzn. wejście w tą activity spowoduje od
+     * razu wywołanie wykonania kopii zapasowej przy użyciu matody makeBuckup()
+     * Metoda wywoływana przez DrawerLayout.
+     */
     public void showListOfOvertimes()
     {
-        Intent intent = new Intent(this, ListOfOvertimesActivity.class).putExtra("fromNotifier", false);
+        Intent intent = new Intent(this, ListOfOvertimesActivity.class)
+                .putExtra("fromNotifier", false);
         startActivity(intent);
     }
 
+
+    /**
+     * Otwieranie activity ze statystykami gdzie zmiajdują sie min.. wykresy
+     * Metoda wywoływana przez DrawerLayout.
+     */
     public void showStatistics()
     {
         Intent intent = new Intent(this, Statistics.class);
         startActivity(intent);
     }
 
+
+    /**
+     * Otwieranie ustawień. Metoda wywoływana przez DrawerLayout.
+     */
     public void showSettings()
     {
         Intent intent = new Intent(this, SettingsPreferences.class);
@@ -360,19 +434,27 @@ public class MainActivity extends AppCompatActivity
         final EditText minutesEditText = findViewById(R.id.mainMinutesEditText);
         final EditText hoursEditText   = findViewById(R.id.mainHoursEditText);
 
+        // wczytanie ile mamy wpisanych minut.
         String minutes = minutesEditText.getText().toString();
         String hours = hoursEditText.getText().toString();
 
+        // wczytanie aktualnie zaznaczonej w kalendarzu daty
         Calendar date = mItemViewModel.getLocalDate().getValue();
 
+        // jeśli gdzieś nie jest wypełnione pole to uzupełniam o
+        // brakujące wartości.
         if (minutes.equals(""))
             minutes = "0";
         if (hours.equals(""))
             hours = "0";
         if (minutes.equals("0") && hours.equals("0"))
         {
+            // jeśli obie wartości nie są wpisane lub są zerowe to
+            // wyświetlam info dialog, ze czas nie został wpsany.
+            // a następnie wychodzę z funkcji.
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle(R.string.incorrect_overtime)
+                    .setIcon(R.drawable.ic_round_error_outline_24px)
                     .setMessage(R.string.set_non_null_time)
                     .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id)
@@ -388,6 +470,8 @@ public class MainActivity extends AppCompatActivity
         int minutesSigned = Integer.parseInt(minutes);
         int hoursSigned = Integer.parseInt(hours);
 
+        // w zależności czy godziny mają być odejmowane czy dodawane zmieniam ich
+        // znak
         if (!addition)
         {
             minutesSigned = -minutesSigned;
@@ -397,10 +481,26 @@ public class MainActivity extends AppCompatActivity
         minutesInt = minutesSigned;
         hoursInt= hoursSigned;
 
-        if (Math.abs(minutesInt) >= 60)
+        if ( (Math.abs(minutesInt) >= 60) && (Math.abs(hoursInt) >= 24) )
+        {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.incorrect_time)
+                    .setIcon(R.drawable.ic_round_error_outline_24px)
+                    .setMessage(R.string.minutes_and_time_above_level)
+                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id)
+                        {
+                            minutesEditText.setText("");
+                            hoursEditText.setText("");
+                        }
+                    });
+            builder.show();
+        }
+        else if (Math.abs(minutesInt) >= 60)
         {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle(R.string.incorrect_minutes)
+                    .setIcon(R.drawable.ic_round_error_outline_24px)
                     .setMessage(R.string.minutes_lower_60)
                     .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id)
@@ -410,35 +510,443 @@ public class MainActivity extends AppCompatActivity
                     });
             builder.show();
         }
-        else  // to jest w przypadku gdy wszystko jest w porządku
+        else if (Math.abs(hoursInt) >= 24)
         {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.incorrect_hours)
+                    .setIcon(R.drawable.ic_round_error_outline_24px)
+                    .setMessage(R.string.hours_above_23)
+                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id)
+                        {
+                            hoursEditText.setText("");
+                        }
+                    });
+            builder.show();
+        }
+        else
+        {
+            // jeśli dane mają poprawne wartości to
+            // przypisuję dane do
             dayOfOvertime = date.get(Calendar.DAY_OF_MONTH);// zaczyna się od 1
-            monthOfOvertime = date.get(Calendar.MONTH) +1;
+            monthOfOvertime = date.get(Calendar.MONTH) +1; // miesiące zaczynają się od 0
             yearOfOvertime = date.get(Calendar.YEAR);
             dayOfWeek = date.get(Calendar.DAY_OF_WEEK); //sunday is beginning of week and has value 0
 
-            if (mSharedPreferences.getBoolean("askAboutNote", true)) //prośba o dodanie notatki
+            // sprawdzam czy taki wpis już istnieje w bazie danych
+
+            boolean isItemExisting  = listOfItems.stream()
+                    .anyMatch(item ->
+                            Integer.valueOf(item.getYearOfOvertime()).equals(yearOfOvertime)
+                                    && Integer.valueOf(item.getMonthOfOvertime()).equals(monthOfOvertime)
+                                    && Integer.valueOf(item.getDayOfOvertime()).equals(dayOfOvertime)
+                    );
+
+            if (isItemExisting)
             {
-                NoteDialog noteDialog = new NoteDialog();
-                noteDialog.show(getSupportFragmentManager(),"note_tag");
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(R.string.item_exists_in_db)
+                        .setIcon(R.drawable.ic_round_error_outline_24px)
+                        .setMessage(R.string.do_you_want_change_item)
+                        .setPositiveButton(R.string.change, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id)
+                            {
+                                if (mSharedPreferences.getBoolean("askAboutNote", true))
+                                { //prośba o dodanie notatki
+                                    dialog.cancel();
+                                    NoteDialog noteDialog = new NoteDialog();
+                                    noteDialog.show(getSupportFragmentManager(),"note_tag");
+                                    minutesEditText.setText("");
+                                    hoursEditText.setText("");
+                                }
+                                else
+                                {
+                                    mItemViewModel.insert(new Item(0, todayDate, dayOfWeek, yearOfOvertime,
+                                            monthOfOvertime, dayOfOvertime, hoursInt, minutesInt, ""));
+                                    minutesEditText.setText("");
+                                    hoursEditText.setText("");
+                                    Toast.makeText(thisContext, getText(R.string.operation_saved), Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        })
+                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener()
+                        {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which)
+                            {
+                                // do nothing
+                            }
+                        });
+                builder.show();
             }
             else
             {
-                mItemViewModel.insert(new Item(0, todayDate, dayOfWeek, yearOfOvertime, monthOfOvertime, dayOfOvertime, hoursInt, minutesInt, ""));
-                Toast.makeText(this, getText(R.string.operation_saved), Toast.LENGTH_SHORT).show();
+                if (mSharedPreferences.getBoolean("askAboutNote", true))
+                { //prośba o dodanie notatki
+                    NoteDialog noteDialog = new NoteDialog();
+                    noteDialog.show(getSupportFragmentManager(),"note_tag");
+                    minutesEditText.setText("");
+                    hoursEditText.setText("");
+                }
+                else
+                {
+                    mItemViewModel.insert(new Item(0, todayDate, dayOfWeek, yearOfOvertime,
+                            monthOfOvertime, dayOfOvertime, hoursInt, minutesInt, ""));
+                    minutesEditText.setText("");
+                    hoursEditText.setText("");
+                    Toast.makeText(this, getText(R.string.operation_saved), Toast.LENGTH_SHORT).show();
+                }
             }
         }
     }
 
 
+    /**
+     * Metoda pochodząca z interfejsu NoteDialog.NoteDialogListener.
+     * Jeśli w ustawieniach mamy zaznaczone, że notatka ma się wyświetlać to wywołując
+     * NoteDialog po czym jeśli klikniemy tam ok to wpisana w ten dialog notatka
+     * będzie dostarczona za pomocą tej funkcji z tamtej klasy tutaj.
+     *
+     * W metodzie edytuję preferencje z zależności od tego czy użytkownik zanaczył,
+     * że będzie chciał pokazywać jeszcze to zapytanie o notatkę czy nie.
+     * @param note notatka, którą otrzymujemy od użytkownika, po wpisanu jej w NoteDialog
+     * @param show boolean, czy pytanie o notatkę ma byc dalej wyświetlane przy dodawaniu kolejnych
+     *             nadgodzin.
+     */
     @Override
     public void applyChanges(String note, boolean show)
     {
-        mSharedPreferences.edit().putBoolean("askAboutNote", !show).apply(); //zaprzeczamy, że chemy pokazywać ponownie to okno
-        mItemViewModel.insert(new Item(0, todayDate, dayOfWeek, yearOfOvertime, monthOfOvertime, dayOfOvertime, hoursInt, minutesInt, note));
+
+        mSharedPreferences.edit().putBoolean("askAboutNote", !show).apply();
+        mItemViewModel.insert(new Item(0, todayDate, dayOfWeek, yearOfOvertime,
+                monthOfOvertime, dayOfOvertime, hoursInt, minutesInt, note));
         Toast.makeText(this, getText(R.string.operation_saved), Toast.LENGTH_SHORT).show();
     }
 
 
+    /*
+    ****************************************************
+    METODY UZYWANE DO WYCZTANIA BUCKUP'U
+    ****************************************************
+    */
 
+    /**
+     * Metoda wywołana gdy użytkownik wybierze w DrawerLayout opcję
+     * wczytania buckupu.
+     */
+    private void readBuckUp()
+    {
+        if (isExternalStorageWritable())
+        {
+            // jeśli pozwolenie nie zostało zaakceptowane przez użytkownika to wykonaj if
+            // if wywołuje metodę, która wyświetla zapytanie systemowe dla dostępu do
+            // systemu plików.
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED)
+            {
+                showRequestPermissionDialog();
+            }
+            else // jeśli dostęp jest zapewniony to następuje przeszukanie folderu.
+                ifPermissionGranted();
+        }
+        else // to jest w przypadku gdy nie można dostać się do external location bo sd card jest niedostępna
+        {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.error)
+                    .setIcon(R.drawable.ic_round_error_outline_24px)
+                    .setMessage(R.string.error_external_storage)
+                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id)
+                        {
+                            dialog.cancel();
+                        }
+                    });
+            builder.show();
+        }
+    }
+
+
+    /**
+     * Metoda wywołana w readBuckup() a mająca na celu pokazanie zapytania systemowego
+     * o dostęp do plików. jeśli użytkownik przy zaznaczy, że nie zezwala i zaznaczy
+     * aby nie pokazywać ponownie to to okno mimo wywołania metody junie pokaże.
+     */
+    private void showRequestPermissionDialog()
+    {
+        ActivityCompat.requestPermissions( this,
+                new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                MY_PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE);
+    }
+
+
+    /**
+     *
+     */
+    private void ifPermissionGranted()
+    {
+        File folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        String name = "[.]xml";
+        File[] lista = folder.listFiles(); // wczytuje listę plików i folderów z danej lokalizacji
+        // jeśli lista nie jest pusta czyli w folderze Downloads są pliki (jakiekolwiek)
+        if (lista != null)
+        {
+            // ekstrahuje ścieżki zawierające rozszerzenie xml.
+            File[] nowaLista = Arrays.stream(lista)
+                    //.filter(file -> file.isFile()) // odfiltrowuje tutaj directory
+                    .filter(File::isFile)            // można też odfiltrować referencją
+                    .filter(file -> file.getName().matches(".*" + name))
+                    // odfiltrowuje tutaj nazwy plików nie zawierające poszukiwanej nazwy.
+                    .toArray(File[]::new);
+
+            // jeśli lista jest pusta to wyświetlam dialog z informacją, że nie ma żadnego pasującego pliku
+            if (nowaLista.length == 0)
+            {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(R.string.error)
+                        .setIcon(R.drawable.ic_round_error_outline_24px)
+                        .setMessage(R.string.error_file_does_not_exist)
+                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id)
+                            {
+                                //dialog.cancel();
+                            }
+                        });
+                builder.show();
+            }
+            else // jeśli natomiast lista nie jest pusta to wyświetli dialog z listą do pojedyńczego odtickowania.
+            {
+                // tutaj ekstrahuje ścieżki do samych nazw plików, które zostanę wyświetlone w dialogu do odtick'owania.
+                String[] listaPlikow = Arrays.stream(nowaLista).map(File::getName).toArray(String[]::new);
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(R.string.selectBuckupFile)
+                        .setItems(listaPlikow, new DialogInterface.OnClickListener()
+                        {
+                            // metoda, która zostanie wywołana, gdy użytkownik kliknie w którąś z pozycji z nazwą pliku
+                            // argument which jest indeksem pozycji którą wybieram
+                            public void onClick(DialogInterface dialog, int which)
+                            {
+                                File chosenFile = nowaLista[which];
+                                // wczytuję ścieżkę do pliku zakładając, że kolejność ścieżek absolutnych w nowaLista jest
+                                // taka sama jak w listaPlikow, przez to wybierając plik wybieram ścieżkę absolutną, którą
+                                // następnie użyje do wczytania i parsingu pliku.
+                                // parser wczytuje wybraną ścieżkę
+                                XmlParser parser = new XmlParser(thisContext, chosenFile);
+                                List<Item> readItems = parser.returnList();
+                                mItemViewModel.mergeDatabaseWithBuckupFile(readItems);
+                            }
+                        });
+                builder.show();
+            }
+        }
+        else
+        {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.error)
+                    .setMessage(R.string.no_files_in_download_folder)
+                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener()
+                    {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which)
+                        {
+                            dialog.cancel();
+                        }
+                    });
+            builder.show();
+        }
+    }
+
+
+    /**
+     * Metoda sprawdza czy można zapsiwać na zewnętrzej karcie pamięci
+     * @return prawda czy fałsz
+     */
+    private boolean isExternalStorageWritable()
+    {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state) ||
+                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+            return true;
+        }
+        return false;
+    }
+
+
+    /**
+     * Metoda wywoływana gdy użytkownik wybierze czy akceptuje czy nie akceptuje
+     * dostęp aplikacji do plików na telefonie.
+     * Metoda jest implementowana z interfajsu:
+     * ActivityCompat.OnRequestPermissionsResultCallback, któ©y odpowiada za
+     * wyświetlanie dialogów z zapytaniami o dostęp do funkcjonalności
+     * telfonu.
+     * @param requestCode kod któremu odpowiada wyświetlone zapytanie. tzn.
+     *                    dla każdego zapytania o dostęp do jakiejś funkcjonalności
+     *                    w telefonie przypisuje się jakiś kod w posataci int.
+     * @param permissions typy pozwolenia jakie będą spełnione gdy użytkownik
+     *                    zatwierdzi je w wyskakującym dialogu.
+     * @param grantResults jeśli dla danego pozwolenia mamy jakąś decyzję
+     *                     i jest ona równa
+     *                     PackageManager.PERMISSION_GRANTED. można wywołać odpowiednią
+     *                     metodę, która obsłuży udostępnioną funkcjonalność.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults)
+    {
+        switch (requestCode) {
+            case MY_PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE :
+                {
+                    // If request is cancelled, the result arrays are empty.
+                    if (grantResults.length > 0
+                            && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                    {
+                        // permission was granted, yay! Do the
+                        // contacts-related task you need to do.
+                        ifPermissionGranted();
+                    }
+                    else
+                    {
+                        // permission denied, boo! Disable the
+                        // functionality that depends on this permission.
+
+                    }
+                    return;
+                }
+            // other 'case' lines to check for other
+            // permissions this app might request.
+        }
+    }
+
+
+    /*
+    ****************************************************
+    METODY UżYWANE DO ZROBIENIA BUCKUP'U
+    ****************************************************
+    */
+
+    /**
+     * Metoda wywoływana po kliknięcu w DrawerLayout o zrobienie buckupu
+     */
+    private void makeBuckup()
+    {
+        saveOnOtherLocalization();
+    }
+
+
+    /**
+     * Metoda sprawdza, czy mamy wpisany buckupowy adress email. jeśli go nie ma to
+     * alertDialogiem prosi go o wpisanie, następnie zapisuje go w preferencjach.
+     */
+    private void saveOnOtherLocalization()
+    {
+        String email = mSharedPreferences.getString("buckup_email","");
+        if (email.equals("")) // Todo też do weryfikacji dlaczego może dawac nullPointerException
+        {
+            LayoutInflater layoutInflater = LayoutInflater.from(MainActivity.this);
+            // następnie wczytujemy view które ma byc wstawione do AlertDialogu
+            View promptUserView = layoutInflater.inflate(R.layout.email_dialog, null);
+            final EditText userAnswer = (EditText) promptUserView.findViewById(R.id.email_editText_dialog);
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.set_buckup_email)
+                    .setView(promptUserView)
+                    .setPositiveButton(R.string.set, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id)
+                        {
+                            String adres = userAnswer.getText().toString();
+                            mSharedPreferences.edit().putString("buckup_email", adres).apply();
+                            Toast.makeText(getApplicationContext(), getText(R.string.buckup_email_address_changed),
+                                    Toast.LENGTH_SHORT).show();
+                            wyslijbuckup();
+                        }
+                    })
+                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id)
+                        {
+                            dialog.cancel();
+                        }
+                    });
+            builder.show();
+        }
+        else
+            wyslijbuckup();
+    }
+
+    /**
+     * Metoda jest wywołana w metodzie makeBuckup() w przypadku gdy mamy już ustawiony
+     * email buckupowy. Metoda tworzy intent, który zostanie użyty do otworzenia
+     * innej aplikacji do której zostanie wysłany plik buckupowy.
+     */
+    private void wyslijbuckup()
+    {
+        Intent intent = createEmailIntent();
+        if (intent.resolveActivity(getPackageManager()) != null)
+            startActivity(intent);
+        else
+            Toast.makeText(getApplicationContext(), "Cannot start email Intent.",
+                    Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Funkcja generuje intent w którym zawieramy plik buckupowy xml.
+     *
+     * @return Intent, który w załączniku posiada plik z buckupem w postaci
+     * pliku xml.
+     */
+    private Intent createEmailIntent()
+    {
+        String email = mSharedPreferences.getString("buckup_email","");
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        //intent.setData(Uri.parse("mailto:"));
+        //intent.setDataAndType(Uri.parse("mailto:"), "*/*"); // to powoduje cannot resolve patrz else poniżej
+        //intent.setType("*/*");
+        intent.setType("text/xml");
+        String[] lista = new String[] {email};
+        intent.putExtra(Intent.EXTRA_EMAIL, lista);
+        Calendar calendar = Calendar.getInstance();
+        intent.putExtra(Intent.EXTRA_SUBJECT, "Buckup " + calendar.getTime());
+
+        if (listOfItems == null)
+        {
+            Toast.makeText(this, "List is NULL", Toast.LENGTH_SHORT).show();
+            return null;
+        }
+        else
+        {
+            BuckUpFile file = new BuckUpFile(getCacheDir(), listOfItems);
+            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            Uri buckupUri = MyFileProvider.getUriForFile(getApplicationContext(),
+                    "com.example.sudouser.nadgodzinki.BuckUp.MyFileProvider", file.getFile());
+            intent.putExtra("path", file.getFile().getPath());
+            intent.putExtra(Intent.EXTRA_STREAM, buckupUri);
+
+            if (mSharedPreferences.getBoolean("askForAppChooser", true))
+                return Intent.createChooser(intent, getText(R.string.which_app_choose));
+            else
+                return intent;
+        }
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

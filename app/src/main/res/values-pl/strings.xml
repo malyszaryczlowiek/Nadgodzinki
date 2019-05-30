@@ -44,9 +44,9 @@
     <string name="clear_database_desctription">Czyszczenie bazy spowoduje nieodwracalne usunięcie wszystkich wpisów. Jeśli na pewno chcesz to zrobić, wykonaj najpierw kopię zapasową na wszelki wypadek.</string>
     <string name="clear_all">Wyczyść wszystko</string>
     <string name="clear">Usuń</string>
-    <string name="make_buckup">Wykonaj buckup</string>
+    <string name="make_buckup">Wykonaj Kopię Zapasową</string>
     <string name="database_has_beeen_cleared">Baza została wyczyszczona.</string>
-    <string name="read_buckup">Wczytaj Buckup</string>
+    <string name="read_buckup">Wczytaj Kopię Zapasową</string>
     <string name="error">Błąd!</string>
     <string name="error_external_storage">Brak dostępu do zewnętrzej lokalizacji. Sprawdź czy karta pamięci jest włożona.</string>
     <string name="error_file_does_not_exist">Brak pliku kopii zapasowej w folderze Pobrane. Pobierz zapisany plik do tego folderu i spróbuj ponownie.</string>
@@ -91,4 +91,21 @@
     <string name="graph">Wykres</string>
     <string name="next">Dalej</string>
     <string name="back">Wstecz</string>
+    <string name="select_where_to_save_buckup">Wybierz gdzie zapisać kopię zapasową</string>
+    <string name="close">Zamknij Panel Nawigacji</string>
+    <string name="navigation_drawer_open">Otwórz Panel Nawigacji</string>
+    <string name="request_permission_expalnation">Aby wczytać kopię zapasową użytkownik musi zaakceptować udzielenie dostępu aplikacji do plików i folderów.</string>
+    <string name="no_files_in_download_folder">W katalogu Pobrane nie znajdują się żadne pliki. Pobierz plik kopii zapasowej a następnie powtórz operację.</string>
+    <string name="reading_buckup_file_permanently_disabled_explenation">"Brak dostępu do systemu plików. Ta opcja została permanentnie wyłączona. "</string>
+    <string name="which_app_choose">Którą aplikację wybrać do zapisania kopii zapasowej?</string>
+    <string name="show_app_chooser">Pokazuj wybór aplikacji</string>
+    <string name="add_or_subtract">Dodaj lub usuń</string>
+    <string name="overtimes">nadgodzinę</string>
+    <string name="incorrect_time">Niepoprawna wartość czasu</string>
+    <string name="minutes_and_time_above_level">Ilość godzin jest powyżej 24 a minut powyżej 60.</string>
+    <string name="hours_above_23">Ilość godzin powinna być poniżej 24.</string>
+    <string name="incorrect_hours">Niepoprawna ilość godzin</string>
+    <string name="item_exists_in_db">Wpis z tą datą już istnieje w Bazie!</string>
+    <string name="change">Zmień</string>
+    <string name="do_you_want_change_item">Czy chcesz zmienić dotychczasowy wpis na bieżący?</string>
 </resources>

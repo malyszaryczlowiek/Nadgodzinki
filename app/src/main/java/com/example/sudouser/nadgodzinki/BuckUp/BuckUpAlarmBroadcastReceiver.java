@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 
+import com.example.sudouser.nadgodzinki.MainActivity;
 import com.example.sudouser.nadgodzinki.R;
 import com.example.sudouser.nadgodzinki.ListOfOvertimesActivity;
 
@@ -33,7 +34,7 @@ public class BuckUpAlarmBroadcastReceiver extends BroadcastReceiver
         // new ShowNotification().execute(context);
         String CHANNEL_ID = "CHANNEL_ID_2";
         int notificationId = 1;
-        Intent intent = new Intent(context, ListOfOvertimesActivity.class).putExtra("fromNotifier", true);
+        Intent intent = new Intent(context, MainActivity.class).putExtra("fromNotifier", true);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)

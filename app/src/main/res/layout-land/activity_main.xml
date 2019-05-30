@@ -8,6 +8,21 @@
     tools:context=".MainActivity">
 
     <TextView
+        android:id="@+id/editText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:ems="10"
+        android:text="@string/add_or_subtract"
+        android:textAlignment="center"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toStartOf="@+id/mainCalendar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
         android:id="@+id/mainMinutesTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -43,6 +58,7 @@
         android:inputType="number"
         android:singleLine="true"
         android:textAlignment="center"
+        android:maxLength="2"
         app:layout_constraintEnd_toStartOf="@+id/mainCalendar"
         app:layout_constraintTop_toBottomOf="@+id/mainHoursEditText" />
 
@@ -69,6 +85,7 @@
         android:importantForAutofill="no"
         android:inputType="number"
         android:singleLine="true"
+        android:maxLength="2"
         android:textAlignment="center"
         app:layout_constraintEnd_toStartOf="@+id/mainCalendar"
         app:layout_constraintTop_toBottomOf="@+id/mainAddOvertimeText" />
@@ -78,7 +95,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -87,13 +103,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        android:text="@string/add_delete_overtime"
+        android:text="@string/overtimes"
         android:textSize="24sp"
         app:layout_constraintEnd_toStartOf="@+id/mainCalendar"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/editText" />
 
     <Button
         android:id="@+id/mainDeleteButton"

@@ -58,10 +58,7 @@ public class NoteDialog extends AppCompatDialogFragment
         return builder.create();
     }
 
-    public interface NoteDialogListener
-    {
-        void applyChanges(String note, boolean show);
-    }
+
 
     @Override
     public void onAttach(@NonNull Context context)
@@ -76,6 +73,11 @@ public class NoteDialog extends AppCompatDialogFragment
         {
             throw new ClassCastException( context.toString() + " must implement NoteDialogListener");
         }
+    }
+
+    public interface NoteDialogListener
+    {
+        void applyChanges(String note, boolean show);
     }
 }
 

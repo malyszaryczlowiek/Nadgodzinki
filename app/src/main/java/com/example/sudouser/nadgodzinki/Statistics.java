@@ -403,17 +403,9 @@ public class Statistics extends AppCompatActivity
 
         void openGraphInNewActivity()
         {
-            //if (getContext() != null)
-            {
-                //int position = this.position;
                 Intent intent = new Intent(getActivity(), GraphFullScreenActivity.class).putExtra("position", position);
                 startActivity(intent);
-            }
-            //else
-            //    Toast.makeText(getActivity(), "nie można uruchomić intentu", Toast.LENGTH_SHORT).show();
         }
-
-
     }
 
 
@@ -454,67 +446,6 @@ public class Statistics extends AppCompatActivity
         }
     }
 }
-
-
-        /*
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.statistics_forward_button);
-        fab.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                int position = tabLayout.getSelectedTabPosition() + 1;
-                if (position >= tabLayout.getTabCount())
-                    tabLayout.getTabAt(0).select();
-                else
-                    tabLayout.getTabAt(position).select();
-            }
-        });
-
-        FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.statistics_backward_button);
-        fab2.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                int position = tabLayout.getSelectedTabPosition();
-                if (position == 0)
-                    tabLayout.getTabAt(3).select();
-                else
-                    tabLayout.getTabAt(position -1).select();
-            }
-        });
-         */
-
-
-/*
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu)
-    {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_statistics, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item)
-    {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings)
-        {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-     */
-
-
 
 
 

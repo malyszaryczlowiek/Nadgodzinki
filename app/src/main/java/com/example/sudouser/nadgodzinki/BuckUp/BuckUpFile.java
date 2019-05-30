@@ -1,8 +1,5 @@
 package com.example.sudouser.nadgodzinki.BuckUp;
 
-import android.content.Context;
-
-import com.example.sudouser.nadgodzinki.R;
 import com.example.sudouser.nadgodzinki.db.Item;
 
 import org.w3c.dom.Document;
@@ -30,7 +27,7 @@ public class BuckUpFile
 {
     private File plik;
 
-    public BuckUpFile(Context context, @NonNull List<Item> itemList)
+    public BuckUpFile(File directory, @NonNull List<Item> itemList)
     {
         plik = null;
 
@@ -106,7 +103,7 @@ public class BuckUpFile
                 rootelement.appendChild(item);
             }
 
-            plik = new File(context.getCacheDir(), context.getText(R.string.app_name) + "_Buckup.xml");
+            plik = new File(directory, "Nadgodzinki_BuckUp.xml");
             plik.deleteOnExit();
 
             Transformer transformer = TransformerFactory.newInstance().newTransformer();

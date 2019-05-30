@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="buckup_list" >
+    <string-array name="buckup_period_list">
         <item name="every_week">Co tydzień</item>
         <item name="every_month">Co miesiąc</item>
         <item name="every_quarter">Co kwartał</item>
@@ -51,6 +51,11 @@
         <item>Wyrobione i Odebrane</item>
         <item>Wyrobione</item>
         <item>Odebrane</item>
+    </string-array>
+
+    <string-array name="select_buckup_place">
+        <item>Karta Pamięci</item>
+        <item>Inna lokalizacja</item>
     </string-array>
 
 </resources>

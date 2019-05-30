@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#008577</color>
+    <color name="colorPrimary">#00838f</color> <!--   #008577 -->
     <color name="colorPrimaryDark">#00574B</color>
+
     <color name="colorAccent">#E61561</color>
-    <color name="positiveColorOvertime">#afde99</color>
-    <color name="negativeColorOvertime">#fa7982</color>
+    <color name="positiveColorOvertime">#e0f7fa</color> <!-- #afde99 -->
+    <color name="negativeColorOvertime">#3FE61561</color> <!-- #fa7982 -->
+
+    <color name="primaryColor">#00838f</color>
+    <color name="primaryLightColor">#4fb3bf</color>
+    <color name="primaryDarkColor">#005662</color>
+
+    <color name="secondaryColor">#e0f7fa</color>
+    <color name="secondaryLightColor">#b4ffff</color>
+    <color name="secondaryDarkColor">#4bacb8</color>
+
+    <color name="primaryTextColor">#ffffff</color>
+    <color name="secondaryTextColor">#014F53</color>
 </resources>

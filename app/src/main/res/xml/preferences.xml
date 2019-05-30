@@ -8,7 +8,7 @@
         <EditTextPreference
             android:dialogMessage="@string/enter_your_buckup_email"
             android:dialogTitle="@string/buckup_email_address"
-            android:icon="@android:drawable/ic_dialog_email"
+            android:icon="@drawable/ic_email_24px"
             android:inputType="textEmailAddress"
             android:key="buckup_email"
             android:title="@string/settings_buckup_email"
@@ -17,7 +17,7 @@
         <SwitchPreference
             android:defaultValue="true"
             android:editable="true"
-            android:icon="@android:drawable/ic_menu_upload"
+            android:icon="@drawable/ic_upload_24px"
             android:key="buckup_enabled"
             android:summary="@string/settings_buckup_switch_summary"
             android:title="@string/auto_buckup" />
@@ -26,9 +26,9 @@
             android:defaultValue="week"
             android:dependency="buckup_enabled"
             android:dialogTitle="@string/choose_buckup_period"
-            android:entries="@array/buckup_list"
+            android:entries="@array/buckup_period_list"
             android:entryValues="@array/buckup_list_values"
-            android:icon="@android:drawable/ic_lock_idle_alarm"
+            android:icon="@drawable/ic_clock_24px"
             android:key="buckupList"
             android:title="@string/buckup_frequency"
             app:useSimpleSummaryProvider="true" />
@@ -39,10 +39,16 @@
             android:dialogTitle="@string/choose_notification_day"
             android:entries="@array/buckup_list_of_dayweeks"
             android:entryValues="@array/buckup_list_of_dayweeks_values"
-            android:icon="@android:drawable/ic_menu_week"
+            android:icon="@drawable/ic_round_calendar_today_24px"
             android:key="buckupDay"
             android:title="@string/buckup_day"
             app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:icon="@drawable/ic_round_apps_24px"
+            android:key="askForAppChooser"
+            android:title="@string/show_app_chooser" />
 
     </PreferenceCategory>
 
@@ -50,7 +56,7 @@
 
         <SwitchPreference
             android:defaultValue="true"
-            android:icon="@android:drawable/ic_menu_help"
+            android:icon="@drawable/ic_note_24px"
             android:key="askAboutNote"
             android:title="@string/ask_about_note" />
     </PreferenceCategory>

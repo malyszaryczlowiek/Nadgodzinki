@@ -3,23 +3,104 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorPrimary">@color/primaryColor</item>
+        <item name="colorPrimaryDark">@color/primaryDarkColor</item>
+        <item name="android:colorSecondary">@color/secondaryColor</item>
+        <item name="android:colorBackground">@color/secondaryColor</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:datePickerDialogTheme">@style/MyDatePickerDialogTheme</item>
+        <item name="buttonStyle">@style/MyButtonTheme</item>
+        <item name="alertDialogTheme">@style/MyAlertDialogTheme</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.NoActionBar.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+
+
+
+    <!-- Solution form: https://www.youtube.com/watch?v=Z1w3y0saKjY -->
+    <style name="MyButtonTheme" parent="Widget.AppCompat.Button">
+        <item name="android:background">@drawable/custom_button</item>
+        <item name="android:textColor">@color/secondaryColor</item>
+    </style>
+
+    <style name="MyButtonTheme.TextColor">
+        <item name="android:textColor">@color/colorAccent</item>
+    </style>
+
+    <style name="MyImageButton" parent="Widget.AppCompat.ImageButton">
+        <item name="android:background">@drawable/custom_image_button</item>
     </style>
 
 
-    <!-- rozwiązanie znalezione w
+
+
+    <style name="MyAlertDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="buttonStyle">@style/MyButtonTheme.TextColor</item>
+        <item name="android:background">@color/secondaryColor</item>
+        <item name="android:headerBackground">@color/primaryColor</item>
+    </style>
+
+
+    <!-- Solution from:
     https://stackoverflow.com/questions/28738089/change-datepicker-dialog-color-for-android-5-0 -->
     <style name="MyDatePickerDialogTheme" parent="android:Theme.Material.Light.Dialog">
         <item name="android:datePickerStyle">@style/MyDatePickerDialogStyle</item>
+        <item name="buttonStyle">@style/MyButtonTheme.TextColor</item>
+        <!-- <item name="android:calendarViewStyle">@style/MyCalendarViewStyle</item> -->
+        <item name="android:background">@color/secondaryColor</item>
     </style>
+    <!-- <item name="android:headerBackground">@color/primaryColor</item> -->
 
     <style name="MyDatePickerDialogStyle" parent="android:Widget.Material.Light.DatePicker">
-        <item name="android:headerBackground">@color/colorPrimary</item>
-        <item name="android:dayOfWeekBackground">@color/colorAccent</item>
+        <item name="android:headerBackground">@color/primaryColor</item>
+        <item name="android:calendarTextColor">@color/colorAccent</item>
+
+        <!-- <item name="android:background">@color/secondaryColor</item> -->
+        <!-- <item name="android:headerYearTextAppearance">@style/MyTextApperance</item> -->
+        <!-- <item name="android:yearListSelectorColor">@color/colorAccent</item> -->
     </style>
+
+    <style name="MyCalendarViewStyle" parent="android:Widget.Holo.CalendarView">
+
+
+        <!--
+        <item name="android:colorFocusedHighlight"></item>
+        <item name="android:calendarTextColor"></item>
+        <item name="android:titleTextColor"></item>
+        <item name="android:textColorHighlight"></item>
+
+        <item name="android:focusedMonthDateColor">@color/colorAccent</item>
+        <item name="android:colorActivatedHighlight">@color/colorAccent</item>
+        <item name="android:textColorHighlight">@color/colorAccent</item>
+        <item name="android:focusedMonthDateColor">@color/colorAccent</item>
+        -->
+    </style>
+
+    <style name="headerTextStyle" parent="TextAppearance.AppCompat">
+        <item name="android:textColor">@color/colorAccent</item>
+    </style>
+
+    <!--
+        <item name="android:itemBackground">@color/colorAccent</item>
+        <item name="android:calendarTextColor">@color/colorAccent</item>
+        <item name="android:numbersSelectorColor">@color/colorAccent</item>
+        <item name="android:numbersTextColor">@color/colorAccent</item>
+        <item name="android:colorButtonNormal">@color/colorAccent</item>
+        <item name="android:colorAccent">@color/colorAccent</item>
+    -->
 
     <style name="OvertimeDate">
         <item name="android:layout_width">match_parent</item>
@@ -29,29 +110,5 @@
         <item name="android:layout_marginBottom">6dp</item>
         <item name="android:paddingLeft">8dp</item>
     </style>
-
-    <style name="AppTheme.NoActionBar">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
-    </style>
-
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
-
-    <style name="MyButtonTheme" parent="Widget.AppCompat.Button">
-        <item name="android:color"></item>
-        <item name="android:textColor"></item>
-        <item name="android:requiresFadingEdge">horizontal</item>
-    </style>
-
-    <style name="AppTheme.NoActionBar.NoActionBar">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
-    </style>
-
-    <style name="AppTheme.NoActionBar.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-
-    <style name="AppTheme.NoActionBar.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
 </resources>

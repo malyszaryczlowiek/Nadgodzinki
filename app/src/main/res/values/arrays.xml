@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="buckup_list" >
+    <string-array name="buckup_period_list" >
         <item name="every_week">Every week</item>
         <item name="every_month">Every month</item>
         <item name="every_quarter">Every quarter</item>
@@ -52,6 +52,13 @@
         <item>Done</item>
         <item>Taken</item>
     </string-array>
+
+    <string-array name="select_buckup_place">
+        <item>SD Card</item>
+        <item>Other Location</item>
+    </string-array>
+
+
 
 
 </resources>

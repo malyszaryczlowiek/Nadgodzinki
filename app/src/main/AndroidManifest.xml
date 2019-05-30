@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.sudouser.nadgodzinki">
 
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SET_ALARM" />
 
@@ -23,7 +23,7 @@
             android:name=".Statistics"
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar.plus" />
+            android:theme="@style/AppTheme.NoActionBar.Plus" />
         <!-- android:theme="@style/AppTheme" android:label="@string/statistics" -->
         <activity android:name=".MainActivity">
             <intent-filter>
@@ -35,9 +35,8 @@
         <activity
             android:name=".ListOfOvertimesActivity"
             android:parentActivityName=".MainActivity"
-            android:theme="@style/AppTheme.NoActionBar.plus"
+            android:theme="@style/AppTheme.NoActionBar.Plus"
             android:windowSoftInputMode="stateHidden">
-
             <!--
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
@@ -53,6 +52,7 @@
             android:label="@string/settings"
             android:parentActivityName=".MainActivity"
             android:theme="@style/AppTheme" />
+        <service android:name=".Services.MakeBuckupService" />
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.example.sudouser.nadgodzinki.BuckUp.MyFileProvider"

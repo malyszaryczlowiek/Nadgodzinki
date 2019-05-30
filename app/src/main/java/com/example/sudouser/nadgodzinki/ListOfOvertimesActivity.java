@@ -4,62 +4,45 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.Manifest;
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.icu.util.Calendar;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.DocumentsContract;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.sudouser.nadgodzinki.BuckUp.BuckUpFile;
 import com.example.sudouser.nadgodzinki.BuckUp.MyFileProvider;
-import com.example.sudouser.nadgodzinki.BuckUp.XmlParser;
 import com.example.sudouser.nadgodzinki.Dialogs.SearchFilterItemsDialog;
 import com.example.sudouser.nadgodzinki.Dialogs.SearchHelpers.SearchFlags;
 import com.example.sudouser.nadgodzinki.RecyclerViewMain.ItemListAdapter;
 import com.example.sudouser.nadgodzinki.ViewModels.ItemViewModel;
 import com.example.sudouser.nadgodzinki.db.Item;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 
-// implementuje ActivityCompat.OnRequestPermissionsResultCallback bo używamy intentu, który ma zwracać jakiś resultat
-public class ListOfOvertimesActivity
-        extends AppCompatActivity
-        implements ActivityCompat.OnRequestPermissionsResultCallback,
-        ItemListAdapter.ItemListAdapterListener,
+public class ListOfOvertimesActivity extends AppCompatActivity
+        implements ItemListAdapter.ItemListAdapterListener,
         SearchFilterItemsDialog.ChosenSearchCriteriaListener
 {
     private ItemViewModel mItemViewModel;
@@ -67,20 +50,16 @@ public class ListOfOvertimesActivity
     private List<Item> listOfItems =  new ArrayList<>();
     private Context thisContext = this;
     private ItemListAdapter adapter;
-
-    // stałe wykorzystane w metodzie readBuckUp()
-    private static final int MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 1;
-    private static final int REQUEST_XML_OPEN = 1;
+    private SearchView searchView;
+    private String searchViewQuery = "";
+    private boolean hasSearchViewFocus = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
 
-        //getWindow().requestFeature(WindowCompat.FEATURE_ACTION_BAR_OVERLAY);
-        // dodany aby przy przewijaniu chował sie actionBar
         setContentView(R.layout.activity_list_of_overtimes);
-
 
         Toolbar myToolbar = findViewById(R.id.listOfOvertimesActivityToolbar);
         setSupportActionBar(myToolbar);
@@ -89,7 +68,9 @@ public class ListOfOvertimesActivity
         ab.setTitle(R.string.list_of_overtimes);
         ab.setDisplayHomeAsUpEnabled(true);
         //ab.setHideOnContentScrollEnabled(true);// wymuszenie chowania się actionbar
-        // powoduje wyjątek z takim komunikatem: java.lang.UnsupportedOperationException: Hide on content scroll is not supported in this action bar configuration.
+        // powoduje wyjątek z takim komunikatem:
+        // java.lang.UnsupportedOperationException: Hide on content scroll
+        // is not supported in this action bar configuration.
 
         mItemViewModel = ViewModelProviders.of(this).get(ItemViewModel.class);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -99,7 +80,6 @@ public class ListOfOvertimesActivity
         adapter = new ItemListAdapter(this);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        findViewById(R.id.search_and_filter_button).requestFocus();
 
         mItemViewModel.getAllItems().observe(this, new Observer<List<Item>>()
         {
@@ -111,36 +91,39 @@ public class ListOfOvertimesActivity
             }
         });
 
-
-        Button searchFilterButton = findViewById(R.id.search_and_filter_button);
-        searchFilterButton.setOnClickListener(new View.OnClickListener()
+        if (savedInstanceState != null &&
+                savedInstanceState.getBoolean("isSearchViewExtended"))
         {
-            @Override
-            public void onClick(View v)
-            {
-                SearchFilterItemsDialog searcher = new SearchFilterItemsDialog();
-                searcher.show(getSupportFragmentManager(), "search_filter_tag");
-            }
-        });
-
-        Button clearSearch = findViewById(R.id.clear_search_criteria);
-        clearSearch.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-                mItemViewModel.clearSearchCriteria();
-                resetGetAllItemsObserver();
-            }
-        });
-
-
-
-        if (getIntent().getBooleanExtra("fromNotifier", false))
-            makeBuckup();
+            searchViewQuery = savedInstanceState.getString("searchViewQuery");
+            hasSearchViewFocus = true;
+        }
     }
 
-    /*
+
+    /**
+     * Zapisujemy stan activity poprzez zapisanie pewnych wartości w obiekcie bundle
+     *
+     * @param outState bundle, który przechowuje dane zapisane przy poprzednim
+     *                 tworzeniu tej aktywności, dane te można wpisać w obiekt bundle
+     *                 przy użyciu metody: onSaveInstanceState(Bundle bundle)
+     *                 a następnei putBoolean() dla bundle który jest argumentem
+     *                 tej funkcji.
+     */
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState)
+    {
+        if (searchView.hasFocus())
+        {
+            outState.putBoolean("isSearchViewExtended", true);
+            outState.putString("searchViewQuery", searchView.getQuery().toString());
+        }
+        else
+            outState.putBoolean("isSearchViewExtended", false);
+
+        super.onSaveInstanceState(outState);
+    }
+
+/*
     ****************************************************
     METODY UZYWANE DO OBSŁUGI MENU
     ****************************************************
@@ -149,57 +132,41 @@ public class ListOfOvertimesActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_list_of_notes, menu);
+        getMenuInflater().inflate(R.menu.menu_list_of_overtimes, menu);
         MenuItem searchItem = menu.findItem(R.id.menuItemSearchNote);
 
-        EditText searchEditText = (EditText) searchItem.getActionView();
-        searchEditText.setHint(R.string.search_in_notes);
-        searchEditText.setSingleLine(true);
-        searchEditText.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
+        // dzieki temu mangerowi wczytuję ustaiwenia ddla searchView, a następnie dodaję w manifeście jeszcze jedną liniejke
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        searchView = (SearchView) searchItem.getActionView();
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
 
-        // searchEditText.setShowSoftInputOnFocus(true); // nie działa
-
-        searchItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener()
+        searchView.setQueryHint(getResources().getString(R.string.search_in_notes));
+        searchView.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener()
         {
             @Override
-            public boolean onMenuItemClick(MenuItem item)
+            public boolean onQueryTextSubmit(String query)
             {
-                if (searchEditText.requestFocus())
-                {
-                    InputMethodManager manager = (InputMethodManager)
-                            getSystemService(Context.INPUT_METHOD_SERVICE);
-                    manager.showSoftInputFromInputMethod(
-                            searchEditText.getWindowToken(), InputMethodManager.SHOW_FORCED);
-                }
-
-                return true;
-            }
-        });
-
-        // listener monitorujący aktualny wpis
-        searchEditText.addTextChangedListener(new TextWatcher()
-        {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after)
-            {
-
+                return false;
             }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count)
+            public boolean onQueryTextChange(String newText)
             {
-                mItemViewModel.getMatchingNoteQuery(s.toString());
+                mItemViewModel.getMatchingNoteQuery(newText);
                 resetGetAllItemsObserver();
-            }
-
-            @Override
-            public void afterTextChanged(Editable s)
-            {
-
+                return false;
             }
         });
 
-        return super.onCreateOptionsMenu(menu);
+        if (hasSearchViewFocus)
+        {
+            searchItem.expandActionView();
+            searchView.requestFocus();
+            searchView.setQuery(searchViewQuery, true);
+            searchView.setMaxWidth(Integer.MAX_VALUE);
+        }
+        return true;
     }
 
 
@@ -208,11 +175,13 @@ public class ListOfOvertimesActivity
     {
         switch(item.getItemId())
         {
-            case R.id.menuItemSaveBuckup:
-                makeBuckup();
+            case R.id.filterDatabase:
+                SearchFilterItemsDialog searcher = new SearchFilterItemsDialog();
+                searcher.show(getSupportFragmentManager(), "search_filter_tag");
                 return true;
-            case R.id.menuItemReadBuckup:
-                readBuckUp();
+            case R.id.clearFilterCriteria:
+                mItemViewModel.clearSearchCriteria();
+                resetGetAllItemsObserver();
                 return true;
             case R.id.clearDatabase:
                 clearDatabase();
@@ -222,230 +191,6 @@ public class ListOfOvertimesActivity
         }
     }
 
-    /*
-    ****************************************************
-    METODY UZYWANE DO WYCZTANIA BUCKUP'U
-    ****************************************************
-    */
-
-    /**
-     * Metoda używana do wczytywania pliku buckupowego.
-     */
-    private void readBuckUp()
-    {
-        if (isExternalStorageWritable())
-        {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "permision is not granted", Toast.LENGTH_SHORT).show();
-                // jako że granted (dostęp) nie jest zaspokojone, trzeba wyświetlić urzytkownikowi
-                // wyjaśnienie dlaczego należy zapytanie zaakceptować.
-                // w razie problemów należy tutaj zmienić rzutownaie w pierwszym argumencie na Activity
-                if (ActivityCompat.shouldShowRequestPermissionRationale((AppCompatActivity) this, Manifest.permission.READ_EXTERNAL_STORAGE))
-                {
-                    // Show an explanation to the user *asynchronously* -- don't block
-                    // this thread waiting for the user's response! After the user
-                    // sees the explanation, try again to request the permission.
-                }
-                else
-                { // to jest wywołanie dialogu z pytaniem o dostęp do folderów.
-                    ActivityCompat.requestPermissions((AppCompatActivity) this, new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},
-                            MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE);
-                }
-            }
-            else
-            { // to jest kod, który jest wykonywany gdy permission is granted. tzn. gdy użytkownik zezwoli na dostęp do plików
-                File folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                String name = ".xml";
-                File[] lista = folder.listFiles(); // wczytuje listę plików i folderów z danej lokalizacji
-                // jeśli lista nie jest pusta czyli w folderze Downloads są pliki (jakiekolwiek)
-                if (lista != null)
-                {
-                    // ekstrahuje ścieżki zawierające rozszerzenie xml.
-                    File[] nowaLista = Arrays.stream(lista)
-                            //.filter(file -> file.isFile()) // odfiltrowuje tutaj directory
-                            .filter(File::isFile)            // można też odfiltrować referencją
-                            .filter(file -> file.getName().matches(".*" + name)) // odfiltrowuje tutaj nazwy plików nie zawierające poszukiwanej nazwy.
-                            .toArray(File[]::new);
-
-                    // jeśli lista jest pusta to wyświetlam dialog z informacją, że nie ma żadnego pasującego pliku
-                    if (nowaLista.length == 0)
-                    {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                        builder.setTitle(R.string.error)
-                                .setMessage(R.string.error_file_does_not_exist)
-                                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int id)
-                                    {
-                                        //dialog.cancel();
-                                    }
-                                });
-                        builder.show();
-                    }
-                    else // jeśli natomiast lista nie jest pusta to wyświetl dialog z listą do pojedyńczego odtickowania.
-                    {
-                        // tutaj ekstrahuje ścieżki do samych nazw plików, które zostanę wyświetlone w dialogu do odtick'owania.
-                        String[] listaPlikow = Arrays.stream(nowaLista).map(File::getName).toArray(String[]::new);
-                        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                        builder.setTitle(R.string.selectBuckupFile)
-                                .setItems(listaPlikow, new DialogInterface.OnClickListener()
-                                {
-                                    // metoda, która zostanie wywołana, gdy użytkownik kliknie w którąś z pozycji z nazwą pliku
-                                    // argument which jest indeksem pozycji którą wybieram
-                                    public void onClick(DialogInterface dialog, int which)
-                                    {
-                                        File chosenFile = nowaLista[which];
-                                        // wczytuję ścieżkę do pliku zakładając, że kolejność ścieżek absolutnych w nowaLista jest
-                                        // taka sama jak w listaPlikow, przez to wybierając plik wybieram ścieżkę absolutną, którą
-                                        // następnie użyje do wczytania i parsingu pliku.
-                                        // parser wczytuje wybraną ścieżkę
-                                        XmlParser parser = new XmlParser(thisContext, chosenFile);
-                                        List<Item> readItems = parser.returnList();
-                                        mItemViewModel.mergeDatabaseWithBuckupFile(readItems);
-                                    }
-                                });
-                        builder.show();
-                    }
-                }
-                else
-                    Toast.makeText(this, folder.getPath(), Toast.LENGTH_SHORT).show();
-            }
-        }
-        else // to jest w przypadku gdy nie można dostać się do external location bo sd card jest niedostępna
-        {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(R.string.error)
-                    .setMessage(R.string.error_external_storage)
-                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id)
-                        {
-                            dialog.cancel();
-                        }
-                    });
-            builder.show();
-        }
-    }
-
-    /**
-     * Metoda sprawdza czy można zapsiwać na zewnętrzej karcie pamięci
-     * @return prawda czy fałsz
-     */
-    private boolean isExternalStorageWritable()
-    {
-        String state = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED.equals(state) ||
-                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Metoda wywoływana gdy wyświtli się zapytanie (dialog generowany automatycznie przez Androida)
-     * o dostęp do folderów.
-     */
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE : {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-                } else {
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                }
-                return;
-            }
-
-            // other 'case' lines to check for other
-            // permissions this app might request.
-        }
-    }
-
-    /**
-     * Metoda, która jest wywoływana gdy Intent do wybrania pliku buckuupowego, który wywołaliśmy
-     * i który ma zwrócić resultat zwraca właśnie ten rezultat. wewnątrz ciała funkcji ma się znaleźć
-     * cały kod, który obsłuży plik buckupowy
-     * @param requestCode wartość którą chcemy otrzymać
-     * @param resultCode  wartość którą otrzymujemy
-     * @param data        intent który zwraca nam wartość
-     */
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
-        if (requestCode == REQUEST_XML_OPEN && resultCode == RESULT_OK)
-        {
-            Uri fileUri = data.getData(); // TODO sprawdzić jak wygrzebać ścieżkę z tego URI
-            if (DocumentsContract.isDocumentUri(this, fileUri))
-            {
-                try
-                {
-                    DocumentsContract.Path docPath  = DocumentsContract.findDocumentPath(getContentResolver(),fileUri);
-                    List<String> listaPath = docPath.getPath();
-                    String wynik = "";
-                    StringBuilder stringBuilder = new StringBuilder();
-                    for (String s: listaPath)
-                    {
-                        stringBuilder.append(s);
-                    }
-                    wynik = stringBuilder.toString();
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setTitle(R.string.error)
-                            .setMessage(wynik)
-                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener()
-                            {
-                                public void onClick(DialogInterface dialog, int id)
-                                {
-                                    dialog.cancel();
-                                }
-                            });
-                    builder.show();
-
-
-                    Toast.makeText(this, "DOCUMENT URI!!!", Toast.LENGTH_SHORT).show();
-                    String path;
-                    Cursor cursor = null;
-                    try
-                    {
-                        if (fileUri != null)
-                        {
-                            String[] projection = {DocumentsContract.Document.COLUMN_DISPLAY_NAME};
-                            cursor = getContentResolver().query(fileUri, projection, null, null, null);
-                            int column_index = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME);
-                            cursor.moveToFirst();
-                            path = cursor.getString(column_index);
-                            Toast.makeText(this, "path: " + path, Toast.LENGTH_LONG).show();
-
-                            if (fileUri.getPath().equals(path))
-                                Toast.makeText(this, "ścieżki są te same", Toast.LENGTH_LONG).show();
-                        }
-                    }
-                    catch (NullPointerException e)
-                    {
-                        // Log.e("TAG", "getRealPathFromURI Exception : " + e.toString());
-                        Toast.makeText(this, "Wywaliło wyjątek " + e.getMessage(), Toast.LENGTH_LONG).show();
-                        e.printStackTrace();
-                    }
-                    finally
-                    {
-                        if (cursor != null)
-                            cursor.close();
-                    }
-                    //XmlParser parser = new XmlParser(this, file);
-                }
-                catch (FileNotFoundException e)
-                {
-                    e.printStackTrace();
-                }
-            }
-            else
-                Toast.makeText(this, "its not document uri", Toast.LENGTH_SHORT).show();
-        }
-    }
 
     /*
     ****************************************************
@@ -496,10 +241,6 @@ public class ListOfOvertimesActivity
      */
     private void wyslijbuckup()
     {
-        /*
-         * jeśli ustawimy że uri jest adresem email to nie ma możliwości by uruchomiła się
-         * aplikacji inna niż email, bo inne nie obsługuja adresów emailowych
-         */
         Intent intent = createEmailIntent();
         if (intent.resolveActivity(getPackageManager()) != null)
             startActivity(intent);
@@ -515,29 +256,30 @@ public class ListOfOvertimesActivity
     {
         String email = sharedPreferences.getString("buckup_email","");
         Intent intent = new Intent(Intent.ACTION_SEND);
-        //intent.setData(Uri.parse("mailto:"));
-        //intent.setDataAndType(Uri.parse("mailto:"), "*/*"); // to powoduje cannot resolve patrz else poniżej
-        intent.setType("*/*");
+        intent.setType("text/xml");
         String[] lista = new String[] {email};
         intent.putExtra(Intent.EXTRA_EMAIL, lista);
-        LocalDateTime dzisiejszaData = LocalDateTime.now();
-        intent.putExtra(Intent.EXTRA_SUBJECT, "Buckup " + dzisiejszaData.toString());
+        Calendar calendar = Calendar.getInstance();
+        intent.putExtra(Intent.EXTRA_SUBJECT, "Buckup " + calendar.getTime());
 
         if (listOfItems == null)
         {
-            Toast.makeText(this, "listOfItems jest NULL", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "List is NULL", Toast.LENGTH_SHORT).show();
             return new Intent();
         }
         else
         {
-            System.out.println("Jest ok nie ma null pointera");
-            BuckUpFile file = new BuckUpFile(this, listOfItems);
+            BuckUpFile file = new BuckUpFile(getCacheDir(), listOfItems);
             intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             Uri buckupUri = MyFileProvider.getUriForFile(getApplicationContext(),
                     "com.example.sudouser.nadgodzinki.BuckUp.MyFileProvider", file.getFile());
             intent.putExtra("path", file.getFile().getPath());
             intent.putExtra(Intent.EXTRA_STREAM, buckupUri);
-            return intent;
+
+            if (sharedPreferences.getBoolean("askForAppChooser", true))
+                return Intent.createChooser(intent, getText(R.string.which_app_choose));
+            else
+                return intent;
         }
     }
 
@@ -603,23 +345,40 @@ public class ListOfOvertimesActivity
     */
     // korzystamy tutaj z interfejsu utworzonego dla klasy ItemListAdapter
 
-
+    /**
+     * Metody zaimplementowane z interfejsu
+     * ItemListAdapter.ItemListAdapterListener
+     * po to aby korzystać z tutejszych zasobów bez konieczności wyczytywnai
+     * ich do Klasy ItemListAdapter.
+     * @param item element klasy Item, który ma zostać usunięty.
+     */
     @Override
     public void deleteItem(Item item)
     {
         mItemViewModel.deleteItem(item);
     }
 
+    /**
+     * metoda zmianijąca datę dla danego Itemu. pobiera datę którą chcemy wprowadzić
+     * oraz id itemu który chemy zmodyfikować. Nie modyfikujemy samego siebie tzn. id m
+     * muszą być różne.
+     * Data nie może być późniejsza nic dziesiejsza
+     *
+     * @param chosenYear rok
+     * @param chosenMonth miesiąc zmieści ssię od 1-12
+     * @param chosenDay   dzień
+     * @param id id
+     */
     @Override
     public void changeDateOfOvertime(int chosenYear, int chosenMonth, int chosenDay, int id)
     {
-        //
-        LocalDate date = LocalDate.of(chosenYear, chosenMonth, chosenDay);
-        LocalDate today = LocalDate.now();
         // sprawdzanie czy nie chcemy zmienić wpisu na samego siebie. tzn czy uid się nie pokrywają
         int uidPreviousItem = mItemViewModel.getUIdfromDate(chosenYear, chosenMonth, chosenDay);
         if (id != uidPreviousItem)
         {
+            LocalDate date = LocalDate.of(chosenYear, chosenMonth, chosenDay);
+            LocalDate today = LocalDate.now();
+            // sprawdzanie czy data nie jest późniejsza niż dzisejsza
             if (!date.isAfter(today))
             {
                 // chosenMonth musi być od 1-12
@@ -628,14 +387,15 @@ public class ListOfOvertimesActivity
                 calendar.set(Calendar.YEAR, chosenYear);
                 calendar.set(Calendar.MONTH, chosenMonth-1);
                 calendar.set(Calendar.DAY_OF_MONTH, chosenDay);
+                // przypisanie wartości odpowiadającej dniowi tygodnia
                 int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
-
+                // sprawdzenie czy dany wpis nie jest już obecny w bazie danych
                 int existInDB = mItemViewModel.checkNumberOfItemsWithDate(chosenYear, chosenMonth, chosenDay);
                 if (existInDB > 0 )
                 {
-                    // TODO jeśli jest więcej niż 0 to znaczy że jest już w bazie wpis o takiej nazwie
-                    // TODO i dlatego trzeba zapytać czy należy go kasować, stąd tworzymy dialog i
-                    // TODO pytamy jeśli użytkownik kllika zamień to wpis zostanie skasowany a bierzący będzie miał jego datę
+                    //  jeśli jest więcej niż 0 to znaczy że jest już w bazie wpis o takiej dacie
+                    //  i dlatego trzeba zapytać czy należy go podmienić, stąd tworzymy dialog i
+                    //  pytamy jeśli użytkownik kllika zamień to wpis zostanie skasowany a bierzący będzie miał jego datę
 
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
                     builder.setTitle(R.string.replace_item)
@@ -667,6 +427,7 @@ public class ListOfOvertimesActivity
             {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle(R.string.incorrect_date)
+                        .setIcon(R.drawable.ic_round_error_outline_24px)
                         .setMessage(R.string.cannot_setup_future_date)
                         .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener()
                         {
@@ -684,46 +445,27 @@ public class ListOfOvertimesActivity
     }
 
     /**
-     * metoda wywoływana gdy użytkownik będzie chciał zminić liczbę godzin lub minut
-     * @param hours
-     * @param minutes
-     * @param id
+     * metoda z interfejsu ItemListAdapter.ItemListAdapterListener
+     * wywoływana gdy użytkownik będzie chciał zminić liczbę godzin lub minut
+     * @param hours ilość nowych godzin
+     * @param minutes ilość nowych minut
+     * @param id id elementu który modyfikujemy.
      */
     @Override
     public void changeNumberOfMinutesAndHours(int hours, int minutes, int id)
     {
         mItemViewModel.updateNumberOfMinutesAndHours(hours, minutes, id);
-        findViewById(R.id.search_and_filter_button).requestFocus();
-        //getWindow().setSoftInputMode(SOFT_INPUT_STATE_HIDDEN);
-        /*
-        InputMethodManager inputMethodManager = (InputMethodManager)
-                getSystemService(Context.INPUT_METHOD_SERVICE);
-        inputMethodManager.hideSoftInputFromWindow(
-                findViewById(R.id.spinnerEditTextMinutes).getWindowToken(),
-                InputMethodManager.HIDE_NOT_ALWAYS); // hahhaha it's working!!!
-         */
     }
 
     @Override
     public void saveNote(String note, int id)
     {
         mItemViewModel.updateNote(note, id);
-        findViewById(R.id.search_and_filter_button).requestFocus();
-        //getWindow().setSoftInputMode(SOFT_INPUT_STATE_HIDDEN);
-        /*
-        InputMethodManager inputMethodManager = (InputMethodManager)
-                getSystemService(Context.INPUT_METHOD_SERVICE);
-        inputMethodManager.hideSoftInputFromWindow(
-                findViewById(R.id.spinnerEditTextMinutes).getWindowToken(),
-                InputMethodManager.HIDE_NOT_ALWAYS); // hahhaha it's working!!!
-         */
-
     }
 
 
-
     /**
-     * metoda wywoływana w momencie gdy urzytkownik w dialogu szukania wpisze liczbę minut
+     * metoda wywoływana w momencie gdy użytkownik w dialogu szukania wpisze liczbę minut
      * większa niż 60 i naciśnie OK w celu szukania.
      */
     @Override
@@ -732,13 +474,13 @@ public class ListOfOvertimesActivity
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.incorrect_minutes)
                 .setMessage(R.string.minutes_lower_60)
-                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setIcon(R.drawable.ic_round_error_outline_24px)
                 .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener()
                 {
                     @Override
                     public void onClick(DialogInterface dialog, int which)
                     {
-                        // nothing to do
+
                     }
                 })
                 .show();
@@ -766,8 +508,6 @@ public class ListOfOvertimesActivity
         mItemViewModel.loadItemsWhere(
                 yearOfOvertime, monthOfOvertime, dayOfOvertime, chosenHours, chosenMinutes, flags);
 
-        //if(mItemViewModel.getSelectedItems().hasActiveObservers())
-        //    mItemViewModel.getSelectedItems().removeObservers(this);
         if(mItemViewModel.getAllItems().hasActiveObservers())
             mItemViewModel.getAllItems().removeObservers(this);
 
@@ -781,18 +521,14 @@ public class ListOfOvertimesActivity
         });
     }
 
-    // jeśli robimy jakiś search to wczytujemy dane do search live view
-    // nasßpnie kasujemy observera dla all items bo i ustawiamy go ponownie bo teraz będzie wskazywał na J
-    // dane które sa nowo wpisane jeśli
-
-
+    /**
+     * metoda resetująca główny obserwer dla mItemViewModel
+     * usówa go a następnie wczytóje wszystkie dane ponownie.
+     */
     private void resetGetAllItemsObserver()
     {
-        //if(mItemViewModel.getSelectedItems() != null && mItemViewModel.getSelectedItems().hasObservers())
-        //    mItemViewModel.getSelectedItems().removeObservers(this);
         if(mItemViewModel.getAllItems().hasActiveObservers())
             mItemViewModel.getAllItems().removeObservers(this);
-        //mItemViewModel.clearSearchCriteria();
         mItemViewModel.getAllItems().observe(this, new Observer<List<Item>>()
         {
             @Override
@@ -803,33 +539,6 @@ public class ListOfOvertimesActivity
         });
     }
 }
-
-
-
-
-/*
-<com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-
-        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        android:visibility="visible"
-        app:layout_constraintBottom_toTopOf="@+id/constraintLayout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/listOfOvertimesActivityToolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
-
-    </com.google.android.material.appbar.AppBarLayout>
- */
 
 
 

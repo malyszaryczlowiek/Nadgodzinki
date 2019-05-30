@@ -92,7 +92,7 @@
         android:inputType="number"
         android:singleLine="true"
         android:textAlignment="center"
-        android:maxLength="1"
+        android:maxLength="2"
         app:layout_constraintBaseline_toBaselineOf="@+id/mainMinutesTextView"
         app:layout_constraintEnd_toStartOf="@+id/mainMinutesTextView" />
 

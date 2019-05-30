@@ -173,7 +173,8 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
                     int month = calendar.get(Calendar.MONTH);
                     int year = calendar.get(Calendar.YEAR);
 
-                    new DatePickerDialog(context, new DatePickerDialog.OnDateSetListener()
+                    DatePickerDialog pickerDialog =
+                            new DatePickerDialog(context, R.style.MyDatePickerDialogTheme, new DatePickerDialog.OnDateSetListener() //R.style.MyDatePickerDialogTheme,
                     {
                         @Override
                         public void onDateSet(DatePicker view, int year, int month, int dayOfMonth)
@@ -182,8 +183,12 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
                             // a LocalDate używa od 1 do 12.
                             listener.changeDateOfOvertime(year, month + 1, dayOfMonth, item.getUid());
                         }
-                    }, year, month, day)
-                            .show();
+                    }, year, month, day);
+                    // int color = context.getColor(R.color.colorAccent);
+                    //pickerDialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(color);
+                    pickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+
+                    pickerDialog.show();
                 }
             });
 
@@ -213,6 +218,23 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ItemsV
                         int minutes = Integer.parseInt(holder.minutesRecycleView.getHint().toString());
                         if ( (newHoursValue >= 0 && minutes < 0) || (newHoursValue < 0 && minutes >= 0) )
                             minutes = -minutes;
+                        if (Math.abs(newHoursValue) >= 24)
+                        {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                            builder.setTitle(R.string.incorrect_hours)
+                                    .setIcon(R.drawable.ic_round_error_outline_24px)
+                                    .setMessage(R.string.hours_above_23)
+                                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id)
+                                        {
+                                            holder.hoursRecycleView.setText("");
+
+                                        }
+                                    });
+                            builder.show();
+                            return false;
+                        }
+
                         listener.changeNumberOfMinutesAndHours(newHoursValue, minutes, item.getUid());
                         holder.hoursRecycleView.setHint(String.valueOf(newHoursValue));
                         holder.hoursRecycleView.setText("");
