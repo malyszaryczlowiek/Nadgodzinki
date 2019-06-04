@@ -257,7 +257,8 @@ public class SearchFilterItemsDialog extends AppCompatDialogFragment
 
     public interface ChosenSearchCriteriaListener
     {
-        void manageChosenCriteria(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime, int chosenHours, int chosenMinutes, SearchFlags flags);
+        void manageChosenCriteria(int yearOfOvertime, int monthOfOvertime, int dayOfOvertime,
+                                  int chosenHours, int chosenMinutes, SearchFlags flags);
         void showInvalidMinutesNumberDialog();
     }
 }

@@ -30,6 +30,8 @@ import android.widget.Toast;
 
 import com.example.sudouser.nadgodzinki.BuckUp.BuckUpFile;
 import com.example.sudouser.nadgodzinki.BuckUp.MyFileProvider;
+import com.example.sudouser.nadgodzinki.Dialogs.ListOfOvertimesDialogs.ClearDatabaseDialog;
+import com.example.sudouser.nadgodzinki.Dialogs.ListOfOvertimesDialogs.ReplaceItemDialog;
 import com.example.sudouser.nadgodzinki.Dialogs.SearchFilterItemsDialog;
 import com.example.sudouser.nadgodzinki.Dialogs.SearchHelpers.SearchFlags;
 import com.example.sudouser.nadgodzinki.RecyclerViewMain.ItemListAdapter;
@@ -43,7 +45,9 @@ import java.util.List;
 
 public class ListOfOvertimesActivity extends AppCompatActivity
         implements ItemListAdapter.ItemListAdapterListener,
-        SearchFilterItemsDialog.ChosenSearchCriteriaListener
+        SearchFilterItemsDialog.ChosenSearchCriteriaListener,
+        ClearDatabaseDialog.OnSelectedOption,
+        ReplaceItemDialog.OnSelectedButtonClicked
 {
     private ItemViewModel mItemViewModel;
     private SharedPreferences sharedPreferences;
@@ -60,27 +64,75 @@ public class ListOfOvertimesActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_list_of_overtimes);
-
-        Toolbar myToolbar = findViewById(R.id.listOfOvertimesActivityToolbar);
-        setSupportActionBar(myToolbar);
-        ActionBar ab = getSupportActionBar();
-        ab.setDisplayOptions(ActionBar.DISPLAY_SHOW_TITLE);
-        ab.setTitle(R.string.list_of_overtimes);
-        ab.setDisplayHomeAsUpEnabled(true);
-        //ab.setHideOnContentScrollEnabled(true);// wymuszenie chowania się actionbar
-        // powoduje wyjątek z takim komunikatem:
-        // java.lang.UnsupportedOperationException: Hide on content scroll
-        // is not supported in this action bar configuration.
-
         mItemViewModel = ViewModelProviders.of(this).get(ItemViewModel.class);
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
 
-        RecyclerView recyclerView = findViewById(R.id.allItemsTable);
-        adapter = new ItemListAdapter(this);
-        recyclerView.setAdapter(adapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        Runnable runnableSetToolbar = () ->
+        {
+            Toolbar myToolbar = findViewById(R.id.listOfOvertimesActivityToolbar);
+            setSupportActionBar(myToolbar);
+            ActionBar ab = getSupportActionBar();
+            ab.setDisplayOptions(ActionBar.DISPLAY_SHOW_TITLE);
+            ab.setTitle(R.string.list_of_overtimes);
+            ab.setDisplayHomeAsUpEnabled(true);
+            //ab.setHideOnContentScrollEnabled(true);// wymuszenie chowania się actionbar
+            // powoduje wyjątek z takim komunikatem:
+            // java.lang.UnsupportedOperationException: Hide on content scroll
+            // is not supported in this action bar configuration.
+        };
 
+        Runnable runnableSetPreferences = () ->
+        {
+            sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        };
+
+
+        Runnable runnableSetRecycleView = () ->
+        {
+            RecyclerView recyclerView = findViewById(R.id.allItemsTable);
+            adapter = new ItemListAdapter(this);
+            recyclerView.setAdapter(adapter);
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        };
+
+
+
+
+        Runnable runnableCheckSaveInstanceState = () ->
+        {
+            if (savedInstanceState != null &&
+                    savedInstanceState.getBoolean("isSearchViewExtended"))
+            {
+                searchViewQuery = savedInstanceState.getString("searchViewQuery");
+                hasSearchViewFocus = true;
+            }
+        };
+
+        Thread threadSetToolbar = new Thread(runnableSetToolbar);
+        Thread threadSetPreferences = new Thread(runnableSetPreferences);
+        Thread threadSetRecycleView = new Thread(runnableSetRecycleView);
+        Thread threadCheckSaveInstanceState = new Thread(runnableCheckSaveInstanceState);
+
+        threadSetToolbar.start();
+        threadSetPreferences.start();
+        threadSetRecycleView.start();
+        threadCheckSaveInstanceState.start();
+
+        try
+        {
+            threadSetToolbar.join();
+            threadSetPreferences.join();
+            threadSetRecycleView.join();
+            threadCheckSaveInstanceState.join();
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
+
+        // observator musi zostać przypisany na samym końcu ponieważ musimy miec
+        // pewność, że adapter nie będzie null, czyli aż wszytktie inne wątki
+        // zostaną zakończone
         mItemViewModel.getAllItems().observe(this, new Observer<List<Item>>()
         {
             @Override
@@ -90,13 +142,6 @@ public class ListOfOvertimesActivity extends AppCompatActivity
                 adapter.setItems(items);
             }
         });
-
-        if (savedInstanceState != null &&
-                savedInstanceState.getBoolean("isSearchViewExtended"))
-        {
-            searchViewQuery = savedInstanceState.getString("searchViewQuery");
-            hasSearchViewFocus = true;
-        }
     }
 
 
@@ -296,47 +341,44 @@ public class ListOfOvertimesActivity extends AppCompatActivity
      */
     public void clearDatabase()
     {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.clear_database)
-                .setMessage(R.string.clear_database_desctription)
-                .setPositiveButton(R.string.clear, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id)
-                    {
-                        Integer expected = mItemViewModel.getAllItems().getValue().size();
-                        Integer result = mItemViewModel.clearDatabase();
-                        if (result.equals(expected))
-                        {
-                            dialog.cancel();
-                            Toast.makeText(getApplicationContext(), getString(R.string.database_has_beeen_cleared), Toast.LENGTH_SHORT).show();
-                        }
-                        else if (result.equals(-1))
-                        {
-                            dialog.cancel();
-                            Toast.makeText(getApplicationContext(), "Exception appeared.", Toast.LENGTH_SHORT).show();
-                        }
-                        else
-                        {
-                            dialog.cancel();
-                            Toast.makeText(getApplicationContext(), "Other problems appeared.", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                })
-                .setNeutralButton(R.string.make_buckup, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id)
-                    {
-                        dialog.cancel();
-                        makeBuckup();
-                    }
-                })
-                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id)
-                    {
-                        dialog.cancel();
-                        Toast.makeText(getApplicationContext(), getText(R.string.operation_cancelled), Toast.LENGTH_SHORT).show();
-                    }
-                });
-        builder.show();
+        ClearDatabaseDialog dialog = new ClearDatabaseDialog();
+        dialog.show(getSupportFragmentManager(), "ClearDatabaseDialog_Tag");
     }
+
+
+    /**
+     * Metoda overriduje metodę z interfejsu:
+     * ClearDatabaseDialog.OnSelectedOption
+     */
+    @Override
+    public void clearDatabaseClear()
+    {
+        Integer expected = mItemViewModel.getAllItems().getValue().size();
+        Integer result = mItemViewModel.clearDatabase();
+        if (result.equals(expected))
+            Toast.makeText(getApplicationContext(), getString(R.string.database_has_beeen_cleared),
+                    Toast.LENGTH_SHORT).show();
+        else if (result.equals(-1))
+            Toast.makeText(getApplicationContext(), "Exception appeared.",
+                    Toast.LENGTH_SHORT).show();
+        else
+            Toast.makeText(getApplicationContext(), "Other problems appeared.",
+                    Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void clearDatabaseMakeBuckUp()
+    {
+        makeBuckup();
+    }
+
+    @Override
+    public void clearDatabaseOperationCancelled()
+    {
+        Toast.makeText(getApplicationContext(), getText(R.string.operation_cancelled),
+                Toast.LENGTH_SHORT).show();
+    }
+
 
     /*
     *************************************************************************
@@ -396,27 +438,9 @@ public class ListOfOvertimesActivity extends AppCompatActivity
                     //  jeśli jest więcej niż 0 to znaczy że jest już w bazie wpis o takiej dacie
                     //  i dlatego trzeba zapytać czy należy go podmienić, stąd tworzymy dialog i
                     //  pytamy jeśli użytkownik kllika zamień to wpis zostanie skasowany a bierzący będzie miał jego datę
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setTitle(R.string.replace_item)
-                            .setMessage(R.string.replace_item_explenation)
-                            .setPositiveButton(R.string.replace, new DialogInterface.OnClickListener()
-                            {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which)
-                                {
-                                    mItemViewModel.updateDateOfOvertime(chosenYear, chosenMonth, chosenDay, dayOfWeek, id);
-                                }
-                            })
-                            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener()
-                            {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which)
-                                {
-                                    Toast.makeText(thisContext, R.string.operation_cancelled, Toast.LENGTH_SHORT).show();
-                                }
-                            })
-                            .show();
+                    ReplaceItemDialog dialog = new ReplaceItemDialog();
+                    dialog.setDate(chosenYear,  chosenMonth,  chosenDay, id);
+                    dialog.show(getSupportFragmentManager(), "ReplaceItemDialog_Tag");
                 }
                 else if (existInDB == -1)
                     Toast.makeText(this, "Something has gone wrong.", Toast.LENGTH_SHORT).show();
@@ -442,6 +466,30 @@ public class ListOfOvertimesActivity extends AppCompatActivity
         }
         else
             Toast.makeText(this, R.string.nothing_to_change, Toast.LENGTH_SHORT).show();
+    }
+
+
+    /**
+     * Metody implementujące po
+     *
+     */
+    @Override
+    public void onPositiveButtonClicked(int chosenYear, int chosenMonth, int chosenDay, int id)
+    {
+        Calendar calendar = Calendar.getInstance();
+        calendar.clear();
+        calendar.set(Calendar.YEAR, chosenYear);
+        calendar.set(Calendar.MONTH, chosenMonth-1);
+        calendar.set(Calendar.DAY_OF_MONTH, chosenDay);
+        // przypisanie wartości odpowiadającej dniowi tygodnia
+        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+        mItemViewModel.updateDateOfOvertime(chosenYear, chosenMonth, chosenDay, dayOfWeek, id);
+    }
+
+    @Override
+    public void onNegativeButtonClicked()
+    {
+        Toast.makeText(thisContext, R.string.operation_cancelled, Toast.LENGTH_SHORT).show();
     }
 
     /**

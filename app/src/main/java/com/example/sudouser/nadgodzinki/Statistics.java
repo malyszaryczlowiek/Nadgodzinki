@@ -217,8 +217,15 @@ public class Statistics extends AppCompatActivity
             int min = mStatisticsViewModel.allNumberOfMinutesTaken();
             hours_to_take = min / 60;
             minutes_to_take = min % 60;
-            String m = (minutes_to_take < 10) ? "0" + minutes_to_take : String.valueOf(minutes_to_take);
-            String s = hours_to_take + ":"+ m;
+            String m, s;
+
+            m = ( Math.abs(minutes_to_take) < 10) ?
+                    "0" + Math.abs(minutes_to_take) : String.valueOf(Math.abs(minutes_to_take));
+            if (minutes_to_take <0)
+                s = "-" + hours_to_take + ":"+ m;
+            else
+                s = hours_to_take + ":"+ m;
+
             statistics_time_to_take.setText(s);
 
             int minutesDone, minutesTaken;
@@ -230,7 +237,7 @@ public class Statistics extends AppCompatActivity
             day = 0;
             switch (position)
             {
-                case 0: // sumuj wszystkie
+                case 0: // wszystkie
                     time_to_take.setVisibility(View.VISIBLE);
                     statistics_time_to_take.setVisibility(View.VISIBLE);
                     minutesDone = mStatisticsViewModel.numberOfMinutesDone(0,0,0);

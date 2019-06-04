@@ -12,7 +12,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.icu.util.Calendar;
 import android.os.Environment;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.CalendarView;
@@ -23,6 +22,15 @@ import com.example.sudouser.nadgodzinki.BuckUp.BuckUpAlarmBroadcastReceiver;
 import com.example.sudouser.nadgodzinki.BuckUp.BuckUpFile;
 import com.example.sudouser.nadgodzinki.BuckUp.MyFileProvider;
 import com.example.sudouser.nadgodzinki.BuckUp.XmlParser;
+import com.example.sudouser.nadgodzinki.Dialogs.MainActivityDialogs.AskAboutEmailDialog;
+import com.example.sudouser.nadgodzinki.Dialogs.MainActivityDialogs.FileDoesNotExistDialog;
+import com.example.sudouser.nadgodzinki.Dialogs.MainActivityDialogs.IncorrectHoursCountErrorDialog;
+import com.example.sudouser.nadgodzinki.Dialogs.MainActivityDialogs.IncorrectMinutesCountErrorDialog;
+import com.example.sudouser.nadgodzinki.Dialogs.MainActivityDialogs.IncorrectOvertimeErrorDialog;
+import com.example.sudouser.nadgodzinki.Dialogs.MainActivityDialogs.NoFileInDownloadFolderErrorDialog;
+import com.example.sudouser.nadgodzinki.Dialogs.MainActivityDialogs.NullOvertimeErrorDialog;
+import com.example.sudouser.nadgodzinki.Dialogs.MainActivityDialogs.ItemExistsDialog;
+import com.example.sudouser.nadgodzinki.Dialogs.MainActivityDialogs.SelectBuckUpFileDialog;
 import com.example.sudouser.nadgodzinki.Dialogs.NoteDialog;
 import com.example.sudouser.nadgodzinki.ViewModels.ItemViewModel;
 import com.example.sudouser.nadgodzinki.db.Item;
@@ -30,6 +38,8 @@ import com.example.sudouser.nadgodzinki.db.Item;
 import com.google.android.material.navigation.NavigationView;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -57,17 +67,27 @@ import androidx.preference.PreferenceManager;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         NoteDialog.NoteDialogListener,
-        ActivityCompat.OnRequestPermissionsResultCallback
+        ActivityCompat.OnRequestPermissionsResultCallback,
+        ItemExistsDialog.ItemExistsButtonClickedListener,
+        IncorrectOvertimeErrorDialog.ClearEditTextInterface,
+        IncorrectMinutesCountErrorDialog.ClearEditTextInterface,
+        IncorrectHoursCountErrorDialog.ClearEditTextInterface,
+        AskAboutEmailDialog.AskAboutEmailInterface,
+        SelectBuckUpFileDialog.OnSelectedFileListener
 {
 
     private ItemViewModel mItemViewModel;
     private SharedPreferences mSharedPreferences;
+    private EditText minutesEditText ;
+    private EditText hoursEditText   ;
     private SharedPreferences.OnSharedPreferenceChangeListener listener;
     private AlarmManager mAlarm;
     private PendingIntent mPendingIntent;
     private static final int pendingIntentRequestCode = 2;
 
     // fields necessary to create Item
+    private File[] newListOfFiles;
+    // private String[] listaPlikow;
     private String todayDate;
     private int yearOfOvertime;
     private int monthOfOvertime;
@@ -87,19 +107,8 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main_with_drawer);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.mainActivityToolbar);
-        setSupportActionBar(toolbar);
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
 
         mItemViewModel = ViewModelProviders.of(this).get(ItemViewModel.class);
         mItemViewModel.getAllItems().observe(this, new Observer<List<Item>>()
@@ -110,8 +119,8 @@ public class MainActivity extends AppCompatActivity
                 listOfItems = items;
             }
         });
+
         final CalendarView calendarView = findViewById(R.id.mainCalendar);
-        calendarView.setMaxDate(Calendar.getInstance().getTimeInMillis());
         calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener()
         {
             @Override
@@ -131,41 +140,119 @@ public class MainActivity extends AppCompatActivity
             mItemViewModel.setLocalDate(cal);
         }
 
-        Calendar today = Calendar.getInstance();
-        todayDate = String.valueOf(today.get(Calendar.YEAR)) + "." +
-                String.valueOf(today.get(Calendar.MONTH) + 1) + "." +
-                String.valueOf(today.get(Calendar.DAY_OF_MONTH));
 
-        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        createAlarmManager();
-        listener = new SharedPreferences.OnSharedPreferenceChangeListener()
+        Runnable runnableSetToolbar = () ->
         {
-            @Override
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
+            Toolbar toolbar = findViewById(R.id.mainActivityToolbar);
+            setSupportActionBar(toolbar);
+
+            DrawerLayout drawer = findViewById(R.id.drawer_layout);
+            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                    this, drawer, toolbar, R.string.navigation_drawer_open, R.string.close);
+            drawer.addDrawerListener(toggle);
+            toggle.syncState();
+        };
+
+
+        Runnable runnableSetNavigationDrawer = () ->
+        {
+            NavigationView navigationView = findViewById(R.id.nav_view);
+            navigationView.setNavigationItemSelectedListener(this);
+
+            minutesEditText = findViewById(R.id.mainMinutesEditText);
+            hoursEditText   = findViewById(R.id.mainHoursEditText);
+        };
+
+
+
+        Runnable setViewModel = () ->
+        {
+            calendarView.setMaxDate(Calendar.getInstance().getTimeInMillis());
+
+            Calendar today = Calendar.getInstance();
+            todayDate = String.valueOf(today.get(Calendar.YEAR)) + "." +
+                    String.valueOf(today.get(Calendar.MONTH) + 1) + "." +
+                    String.valueOf(today.get(Calendar.DAY_OF_MONTH));
+        };
+
+
+        Runnable setPreferences = () ->
+        {
+            mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+            Runnable runnableCreateAlarmManager = this::createAlarmManager;
+            Thread threadCreateAlarmManager = new Thread(runnableCreateAlarmManager);
+            threadCreateAlarmManager.start();
+            listener = new SharedPreferences.OnSharedPreferenceChangeListener()
             {
-                switch (key)
+                @Override
+                public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
                 {
-                    case "buckup_enabled": // gdy właczamy bądź wyłączamy alarm
-                        if (sharedPreferences.getBoolean(key, true))
+                    switch (key)
+                    {
+                        case "buckup_enabled": // gdy właczamy bądź wyłączamy alarm
+                            if (sharedPreferences.getBoolean(key, true))
+                                createAlarmManager();
+                            else
+                                cancelAlarm();
+                            break;
+                        case "buckupList": // gdy zmieniamy okres przpomnień tydzień-miesiąc-kwartał TODO zmienić nazwę tej zmiennej na buckupPeriodList
                             createAlarmManager();
-                        else
-                            cancelAlarm();
-                        break;
-                    case "buckupList": // gdy zmieniamy okres przpomnień tydzień-miesiąc-kwartał TODO zmienić nazwę tej zmiennej na buckupPeriodList
-                        createAlarmManager();
-                        break;
-                    case "buckupDay": // gdy zmieniamy dzień notyfikacji
-                        createAlarmManager();
-                        break;
-                    default:
-                        break;
+                            break;
+                        case "buckupDay": // gdy zmieniamy dzień notyfikacji
+                            createAlarmManager();
+                            break;
+                        default:
+                            break;
+                    }
                 }
+            };
+            mSharedPreferences.registerOnSharedPreferenceChangeListener(listener);
+
+            if (getIntent().getBooleanExtra("fromNotifier", false))
+                makeBuckup();
+
+            try
+            {
+                threadCreateAlarmManager.join();
+            }
+            catch (InterruptedException e)
+            {
+                e.printStackTrace();
             }
         };
-        mSharedPreferences.registerOnSharedPreferenceChangeListener(listener);
 
-        if (getIntent().getBooleanExtra("fromNotifier", false))
-            makeBuckup();
+
+        Runnable runnableRestoreFromBundle = () ->
+        {
+            //if (savedInstanceState != null)
+              //  listaPlikow = savedInstanceState.getStringArray("listaPlikow");
+        };
+
+        Thread threadRestoreFromBundle = new Thread(runnableRestoreFromBundle);
+        Thread threadSetNavigationView = new Thread(runnableSetToolbar);
+        Thread threadSetDrawerLayer = new Thread(runnableSetNavigationDrawer);
+        Thread threadSetViewModel = new Thread(setViewModel);
+        Thread threadSetPreferences = new Thread(setPreferences);
+
+
+        threadSetNavigationView.start();
+        threadSetDrawerLayer.start();
+        threadSetViewModel.start();
+        threadSetPreferences.start();
+        threadRestoreFromBundle.start();
+
+        try
+        {
+            threadSetNavigationView.join();
+            threadSetDrawerLayer.join();
+            threadSetViewModel.join();
+            threadSetPreferences.join();
+            threadRestoreFromBundle.join();
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     /*
@@ -234,6 +321,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+
     /**
      * Metoda wywoływana gdy użytkownik wybierze jakis element z listy
      * w DrawerLayout. W zależności to tego jaki item jest wybrany
@@ -246,12 +334,42 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item)
     {
+        Runnable runnableRunFunction;
+        Runnable runnableCloseDrawerLayer;
+        Thread threadExecuteFunction;
+        Thread threadCloseDrawer;
+
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        // TODO sprawdzić jak można tu wcisnąć method reference dla obiektu
+        // niestatycznego i do tego z argumentami metody
+        // https://www.codementor.io/eh3rrera/using-java-8-method-reference-du10866vx
+        runnableCloseDrawerLayer = () ->
+        {
+            drawer.closeDrawer(GravityCompat.START);
+        };
+        threadCloseDrawer = new Thread(runnableCloseDrawerLayer);
         switch(item.getItemId())
         {
             case R.id.menuItemListOfOvertimes:
-                showListOfOvertimes();
+                /*
+                runnableRunFunction = this::showListOfOvertimes;
+                threadExecuteFunction = new Thread(runnableRunFunction);
+
+                threadExecuteFunction.start();
+                threadCloseDrawer.start();
+
+                try
+                {
+                    threadExecuteFunction.join();
+                    threadCloseDrawer.join();
+                }
+                catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+                 */
                 drawer.closeDrawer(GravityCompat.START);
+                showListOfOvertimes();
                 return true;
             case R.id.menuItemStatistics:
                 showStatistics();
@@ -297,6 +415,18 @@ public class MainActivity extends AppCompatActivity
         mSharedPreferences.unregisterOnSharedPreferenceChangeListener(listener);
         super.onDestroy();
     }
+
+    /*
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState)
+    {
+        super.onSaveInstanceState(outState);
+
+        if (listaPlikow != null)
+            outState.putStringArray("listaPlikow", listaPlikow);
+    }
+     */
+
 
 
     /**
@@ -377,6 +507,24 @@ public class MainActivity extends AppCompatActivity
     public void addMainButtonClicked(View view)
     {
         insertTimeChecker(true);
+        /*
+
+        Runnable runnableAdd = () ->
+        {
+            insertTimeChecker(true);
+        };
+        Thread threadAdd = new Thread(runnableAdd);
+        threadAdd.start();
+
+        try
+        {
+            threadAdd.join();
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
+         */
     }
 
 
@@ -429,11 +577,8 @@ public class MainActivity extends AppCompatActivity
      * @param addition jeśli parametr ma wartość true to wartości są dodatnie jeśli ma false to znaczy
      *                 . że odejmujemy sobie nadgodzinki
      */
-    private void insertTimeChecker(boolean addition)
+    private void insertTimeChecker(final boolean addition)
     {
-        final EditText minutesEditText = findViewById(R.id.mainMinutesEditText);
-        final EditText hoursEditText   = findViewById(R.id.mainHoursEditText);
-
         // wczytanie ile mamy wpisanych minut.
         String minutes = minutesEditText.getText().toString();
         String hours = hoursEditText.getText().toString();
@@ -452,18 +597,8 @@ public class MainActivity extends AppCompatActivity
             // jeśli obie wartości nie są wpisane lub są zerowe to
             // wyświetlam info dialog, ze czas nie został wpsany.
             // a następnie wychodzę z funkcji.
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(R.string.incorrect_overtime)
-                    .setIcon(R.drawable.ic_round_error_outline_24px)
-                    .setMessage(R.string.set_non_null_time)
-                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id)
-                        {
-                            // nic nie zmieniaj, użytkownik ma tylko przyjąć do wiadomości, że
-                            // trzeba wprowadzić dane.
-                        }
-                    });
-            builder.show();
+            NullOvertimeErrorDialog dialog = new NullOvertimeErrorDialog();
+            dialog.show(getSupportFragmentManager(), "NullOvertimeErrorDialog_Tag");
             return;
         }
 
@@ -483,46 +618,18 @@ public class MainActivity extends AppCompatActivity
 
         if ( (Math.abs(minutesInt) >= 60) && (Math.abs(hoursInt) >= 24) )
         {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(R.string.incorrect_time)
-                    .setIcon(R.drawable.ic_round_error_outline_24px)
-                    .setMessage(R.string.minutes_and_time_above_level)
-                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id)
-                        {
-                            minutesEditText.setText("");
-                            hoursEditText.setText("");
-                        }
-                    });
-            builder.show();
+            IncorrectOvertimeErrorDialog dialog = new IncorrectOvertimeErrorDialog();
+            dialog.show(getSupportFragmentManager(), "IncorrectOvertimeErrorDialog_Tag");
         }
         else if (Math.abs(minutesInt) >= 60)
         {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(R.string.incorrect_minutes)
-                    .setIcon(R.drawable.ic_round_error_outline_24px)
-                    .setMessage(R.string.minutes_lower_60)
-                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id)
-                        {
-                            minutesEditText.setText("");
-                        }
-                    });
-            builder.show();
+            IncorrectMinutesCountErrorDialog dialog = new IncorrectMinutesCountErrorDialog();
+            dialog.show(getSupportFragmentManager(), "IncorrectMinutesCountDialog_Tag");
         }
         else if (Math.abs(hoursInt) >= 24)
         {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(R.string.incorrect_hours)
-                    .setIcon(R.drawable.ic_round_error_outline_24px)
-                    .setMessage(R.string.hours_above_23)
-                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id)
-                        {
-                            hoursEditText.setText("");
-                        }
-                    });
-            builder.show();
+            IncorrectHoursCountErrorDialog dialog = new IncorrectHoursCountErrorDialog();
+            dialog.show(getSupportFragmentManager(), "IncorrectHoursCountDialog_Tag");
         }
         else
         {
@@ -544,40 +651,8 @@ public class MainActivity extends AppCompatActivity
 
             if (isItemExisting)
             {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle(R.string.item_exists_in_db)
-                        .setIcon(R.drawable.ic_round_error_outline_24px)
-                        .setMessage(R.string.do_you_want_change_item)
-                        .setPositiveButton(R.string.change, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id)
-                            {
-                                if (mSharedPreferences.getBoolean("askAboutNote", true))
-                                { //prośba o dodanie notatki
-                                    dialog.cancel();
-                                    NoteDialog noteDialog = new NoteDialog();
-                                    noteDialog.show(getSupportFragmentManager(),"note_tag");
-                                    minutesEditText.setText("");
-                                    hoursEditText.setText("");
-                                }
-                                else
-                                {
-                                    mItemViewModel.insert(new Item(0, todayDate, dayOfWeek, yearOfOvertime,
-                                            monthOfOvertime, dayOfOvertime, hoursInt, minutesInt, ""));
-                                    minutesEditText.setText("");
-                                    hoursEditText.setText("");
-                                    Toast.makeText(thisContext, getText(R.string.operation_saved), Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        })
-                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener()
-                        {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which)
-                            {
-                                // do nothing
-                            }
-                        });
-                builder.show();
+                ItemExistsDialog dialog = new ItemExistsDialog();
+                dialog.show(getSupportFragmentManager(), "ItemExistsDialog_Tag");
             }
             else
             {
@@ -598,6 +673,45 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         }
+    }
+
+    @Override
+    public void itemExistDialogListenerPositiveButtonClicked()
+    {
+        if (mSharedPreferences.getBoolean("askAboutNote", true))
+        { //prośba o dodanie notatki
+            NoteDialog noteDialog = new NoteDialog();
+            noteDialog.show(getSupportFragmentManager(),"note_tag");
+            minutesEditText.setText("");
+            hoursEditText.setText("");
+        }
+        else
+        {
+            mItemViewModel.insert(new Item(0, todayDate, dayOfWeek, yearOfOvertime,
+                    monthOfOvertime, dayOfOvertime, hoursInt, minutesInt, ""));
+            minutesEditText.setText("");
+            hoursEditText.setText("");
+            Toast.makeText(thisContext, getText(R.string.operation_saved), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void clearOvertimeEditTextInterface()
+    {
+        minutesEditText.setText("");
+        hoursEditText.setText("");
+    }
+
+    @Override
+    public void clearMinutesEditTextInterface()
+    {
+        minutesEditText.setText("");
+    }
+
+    @Override
+    public void clearHoursEditTextInterface()
+    {
+        hoursEditText.setText("");
     }
 
 
@@ -669,7 +783,7 @@ public class MainActivity extends AppCompatActivity
     /**
      * Metoda wywołana w readBuckup() a mająca na celu pokazanie zapytania systemowego
      * o dostęp do plików. jeśli użytkownik przy zaznaczy, że nie zezwala i zaznaczy
-     * aby nie pokazywać ponownie to to okno mimo wywołania metody junie pokaże.
+     * aby nie pokazywać ponownie to to okno mimo wywołania metody już nie pokaże.
      */
     private void showRequestPermissionDialog()
     {
@@ -691,7 +805,7 @@ public class MainActivity extends AppCompatActivity
         if (lista != null)
         {
             // ekstrahuje ścieżki zawierające rozszerzenie xml.
-            File[] nowaLista = Arrays.stream(lista)
+            newListOfFiles = Arrays.stream(lista)
                     //.filter(file -> file.isFile()) // odfiltrowuje tutaj directory
                     .filter(File::isFile)            // można też odfiltrować referencją
                     .filter(file -> file.getName().matches(".*" + name))
@@ -699,62 +813,48 @@ public class MainActivity extends AppCompatActivity
                     .toArray(File[]::new);
 
             // jeśli lista jest pusta to wyświetlam dialog z informacją, że nie ma żadnego pasującego pliku
-            if (nowaLista.length == 0)
+            if (newListOfFiles.length == 0)
             {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle(R.string.error)
-                        .setIcon(R.drawable.ic_round_error_outline_24px)
-                        .setMessage(R.string.error_file_does_not_exist)
-                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id)
-                            {
-                                //dialog.cancel();
-                            }
-                        });
-                builder.show();
+                FileDoesNotExistDialog dialog = new FileDoesNotExistDialog();
+                dialog.show(getSupportFragmentManager(), "FileDoesNotExist_Tag");
             }
             else // jeśli natomiast lista nie jest pusta to wyświetli dialog z listą do pojedyńczego odtickowania.
             {
                 // tutaj ekstrahuje ścieżki do samych nazw plików, które zostanę wyświetlone w dialogu do odtick'owania.
-                String[] listaPlikow = Arrays.stream(nowaLista).map(File::getName).toArray(String[]::new);
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle(R.string.selectBuckupFile)
-                        .setItems(listaPlikow, new DialogInterface.OnClickListener()
-                        {
-                            // metoda, która zostanie wywołana, gdy użytkownik kliknie w którąś z pozycji z nazwą pliku
-                            // argument which jest indeksem pozycji którą wybieram
-                            public void onClick(DialogInterface dialog, int which)
-                            {
-                                File chosenFile = nowaLista[which];
-                                // wczytuję ścieżkę do pliku zakładając, że kolejność ścieżek absolutnych w nowaLista jest
-                                // taka sama jak w listaPlikow, przez to wybierając plik wybieram ścieżkę absolutną, którą
-                                // następnie użyje do wczytania i parsingu pliku.
-                                // parser wczytuje wybraną ścieżkę
-                                XmlParser parser = new XmlParser(thisContext, chosenFile);
-                                List<Item> readItems = parser.returnList();
-                                mItemViewModel.mergeDatabaseWithBuckupFile(readItems);
-                            }
-                        });
-                builder.show();
+                String[] listaPlikow = Arrays.stream(newListOfFiles).map(File::getName).toArray(String[]::new);
+                SelectBuckUpFileDialog dialog = new SelectBuckUpFileDialog();
+                Bundle bundle = new Bundle();
+                bundle.putStringArray("listaPlikow", listaPlikow);
+                dialog.setArguments(listaPlikow);
+                //dialog.onSaveInstanceState(bundle);
+                dialog.show(getSupportFragmentManager(), "SelectBuckUpFileDialog_Tag");
+                // i to wywołuje ostatecznie
             }
         }
         else
         {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(R.string.error)
-                    .setMessage(R.string.no_files_in_download_folder)
-                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener()
-                    {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which)
-                        {
-                            dialog.cancel();
-                        }
-                    });
-            builder.show();
+            NoFileInDownloadFolderErrorDialog dialog = new NoFileInDownloadFolderErrorDialog();
+            dialog.show(getSupportFragmentManager(), "NoFileInDownloadFolderErrorDialog_Tag");
         }
     }
 
+    @Override
+    public void selectBuckUpFile(int which)
+    {
+        File chosenFile = newListOfFiles[which];
+        // wczytuję ścieżkę do pliku zakładając, że kolejność ścieżek absolutnych w nowaLista jest
+        // taka sama jak w listaPlikow, przez to wybierając plik wybieram ścieżkę absolutną, którą
+        // następnie użyje do wczytania i parsingu pliku.
+        // parser wczytuje wybraną ścieżkę
+        XmlParser parser = new XmlParser(thisContext, chosenFile);
+        List<Item> readItems = parser.returnList();
+        mItemViewModel.mergeDatabaseWithBuckupFile(readItems);
+    }
+
+
+
+
+    //TODO wstawić tutaj tę metodę
 
     /**
      * Metoda sprawdza czy można zapsiwać na zewnętrzej karcie pamięci
@@ -841,33 +941,20 @@ public class MainActivity extends AppCompatActivity
         String email = mSharedPreferences.getString("buckup_email","");
         if (email.equals("")) // Todo też do weryfikacji dlaczego może dawac nullPointerException
         {
-            LayoutInflater layoutInflater = LayoutInflater.from(MainActivity.this);
-            // następnie wczytujemy view które ma byc wstawione do AlertDialogu
-            View promptUserView = layoutInflater.inflate(R.layout.email_dialog, null);
-            final EditText userAnswer = (EditText) promptUserView.findViewById(R.id.email_editText_dialog);
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(R.string.set_buckup_email)
-                    .setView(promptUserView)
-                    .setPositiveButton(R.string.set, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id)
-                        {
-                            String adres = userAnswer.getText().toString();
-                            mSharedPreferences.edit().putString("buckup_email", adres).apply();
-                            Toast.makeText(getApplicationContext(), getText(R.string.buckup_email_address_changed),
-                                    Toast.LENGTH_SHORT).show();
-                            wyslijbuckup();
-                        }
-                    })
-                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id)
-                        {
-                            dialog.cancel();
-                        }
-                    });
-            builder.show();
+            AskAboutEmailDialog dialog = new AskAboutEmailDialog();
+            dialog.show(getSupportFragmentManager(), "AskAboutEmailDialog_Tag");
         }
         else
             wyslijbuckup();
+    }
+
+    @Override
+    public void changeEmail(String adress)
+    {
+        mSharedPreferences.edit().putString("buckup_email", adress).apply();
+        Toast.makeText(getApplicationContext(), getText(R.string.buckup_email_address_changed),
+                Toast.LENGTH_SHORT).show();
+        wyslijbuckup();
     }
 
     /**
@@ -924,7 +1011,13 @@ public class MainActivity extends AppCompatActivity
                 return intent;
         }
     }
+
+
+
 }
+
+// TODO sprawdzić o co chodzi z handler looperem, gdy uruchamiamiy coś w nowym wątku.
+// https://medium.com/mindorks/mastering-android-handler-4f710296bdc6
 
 
 
