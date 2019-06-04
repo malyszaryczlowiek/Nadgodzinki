@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.sudouser.nadgodzinki">
+    package="com.github.malyszaryczlowiek.nadgodzinki">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -55,7 +55,7 @@
         <service android:name=".Services.MakeBuckupService" />
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.example.sudouser.nadgodzinki.BuckUp.MyFileProvider"
+            android:authorities="com.github.malyszaryczlowiek.nadgodzinki.BuckUp.MyFileProvider"
             android:exported="false"
             android:grantUriPermissions="true">
 

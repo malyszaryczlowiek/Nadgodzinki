@@ -61,7 +61,7 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <!-- to jest kontener na fragmenty  tutaj będziemy wklejać zawartość fragmenów -->
-    <com.example.sudouser.nadgodzinki.MyViewPager.NoSwipableViewPager
+    <com.github.malyszaryczlowiek.nadgodzinki.MyViewPager.NoSwipableViewPager
         android:id="@+id/view_pager_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

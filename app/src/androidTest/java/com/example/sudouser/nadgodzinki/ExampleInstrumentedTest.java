@@ -1,4 +1,4 @@
-package com.example.sudouser.nadgodzinki;
+package com.github.malyszaryczlowiek.nadgodzinki;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -23,6 +23,6 @@ public class ExampleInstrumentedTest
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.example.sudouser.nadgodzinki", appContext.getPackageName());
+        assertEquals("com.github.malyszaryczlowiek.nadgodzinki", appContext.getPackageName());
     }
 }

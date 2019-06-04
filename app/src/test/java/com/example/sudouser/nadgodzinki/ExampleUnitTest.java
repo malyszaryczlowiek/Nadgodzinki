@@ -1,4 +1,4 @@
-package com.example.sudouser.nadgodzinki;
+package com.github.malyszaryczlowiek.nadgodzinki;
 
 import org.junit.Test;
 
